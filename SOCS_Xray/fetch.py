@@ -1,5 +1,7 @@
 from .utils import *
 
+
+
 def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
     print('\n\n============================================================')
@@ -9,7 +11,6 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
     #Initialization
     url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
     api_url = "https://ep.bao.ac.cn/ep/data_center/api/identified_source_list"
-    save_dir = '/mnt/rdliang/SN/EPOT_match/'
 
     response = requests.post(
                 url,
@@ -73,3 +74,30 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
     return table
 
+def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
+    API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
+    BOT_ID = '164028'
+    BOT_NAME = 'bot_BC'
+
+    # API_KEY = '1745589895680b9687d5d2a9.98026628'
+    # BOT_ID = '197764'
+    # BOT_NAME = 'EP_bot_lrd'
+
+    # The base URL for the TNS public objects CSV files
+    BASE_URL = "https://www.wis-tns.org/system/files/tns_public_objects/"
+    """Helper function to download a file from a given URL."""
+    headers = {
+        'user-agent': f'tns_marker{{"tns_id":{BOT_ID},"type":"bot","name":"{BOT_NAME}"}}',
+    }
+    data = {'api_key': API_KEY}
+    
+    url = BASE_URL + filename
+    response = requests.post(url, headers=headers, data=data, stream=True)
+
+    if response.status_code == 200:
+        with open(os.path.join(save_dir,filename), 'wb') as file:
+            for chunk in response.iter_content(1024):
+                file.write(chunk)
+        print(f"Downloaded: {filename}")
+    else:
+        print(f"Failed to download {filename}. Status code: {response.status_code}")
