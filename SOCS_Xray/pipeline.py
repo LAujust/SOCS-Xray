@@ -11,4 +11,7 @@ class Pipeline(object):
     def authorize(self,email,password):
         self.account = {'email':email,'password':password}  #EPSC account
         
+    def run(self):
+        pass
+        
     
