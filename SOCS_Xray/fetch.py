@@ -89,6 +89,11 @@ def check_csv_header(file_path, expected_columns):
         return False
 
 def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
+    
+    print('\n\n============================================================')
+    print('================= Updata TNS List ===================')
+    print('============================================================')
+    
     API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
     BOT_ID = '164028'
     BOT_NAME = 'bot_BC'
@@ -126,4 +131,38 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
     tns_table = Table.read(os.path.join(save_dir,base_filename),format='csv',header_start=1, data_start=2)
     return tns_table
     
+
+
+def get_Alerce():
+    pass
+
+def get_Lasair():
+    pass
+
+def request_obs_time(EMAIL,PASSWORD,ids):
+    EMAIL = "liangrd@bao.ac.cn" # your login email in EP TDAIC
+    PASSWORD = "Liang981127"
+    url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
+    response = requests.post(
+            url,
+            json={"email": EMAIL, "password": PASSWORD},
+            headers={"Content-Type": "application/json"}
+        )
+    response.raise_for_status()  
+    token = response.json().get("token") 
+
+    obs_time = []
+    for id in ids:
+        api_url = "https://ep.bao.ac.cn/ep/data_center/get_first_obs_date?source_id=%s"%id
+
+        response = requests.get(
+                    api_url,
+                    headers={"tdic-token": token},  
+                    params={"token":token} #both hearders and params are need
+                )
+        response.raise_for_status()
+
+        data = response.json()
+        obs_time.append(data['first_obs_date'])
     
+    return obs_time
