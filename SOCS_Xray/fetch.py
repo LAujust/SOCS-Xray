@@ -74,6 +74,20 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
     return table
 
+def check_csv_header(file_path, expected_columns):
+    """检查CSV文件中是否包含任何预期的列"""
+    try:
+        # 尝试读取文件的第一行以检查header
+        df_test = pd.read_csv(file_path, nrows=0)  # 只读取header行
+        # 检查是否存在至少一个预期的列名
+        if any(col in df_test.columns for col in expected_columns):
+            return True
+        else:
+            return False
+    except pd.errors.ParserError:
+        # 如果解析错误，则认为不是标准header
+        return False
+
 def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
     API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
     BOT_ID = '164028'
@@ -101,3 +115,15 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
         print(f"Downloaded: {filename}")
     else:
         print(f"Failed to download {filename}. Status code: {response.status_code}")
+        
+    #Unzip
+    os.chdir(save_dir)
+    unzip_command = f'unzip -o {filename}'
+    subprocess.run(unzip_command, shell=True)
+    base_filename = filename[:-4]  # 去除.zip后缀
+    os.remove(os.path.join(save_dir,filename))
+
+    tns_table = Table.read(os.path.join(save_dir,base_filename),format='csv',header_start=1, data_start=2)
+    return tns_table
+    
+    
