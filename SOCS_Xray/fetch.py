@@ -155,14 +155,18 @@ def request_obs_time(EMAIL,PASSWORD,ids):
     for id in ids:
         api_url = "https://ep.bao.ac.cn/ep/data_center/get_first_obs_date?source_id=%s"%id
 
-        response = requests.get(
-                    api_url,
-                    headers={"tdic-token": token},  
-                    params={"token":token} #both hearders and params are need
-                )
-        response.raise_for_status()
+        try:
+            response = requests.get(
+                        api_url,
+                        headers={"tdic-token": token},  
+                        params={"token":token} #both hearders and params are need
+                    )
+            response.raise_for_status()
 
-        data = response.json()
-        obs_time.append(data['first_obs_date'])
+            data = response.json()
+            obs_time.append(data['first_obs_date'])
+        except:
+            obs_time.append('2050-01-01T00:00:00Z')
+            print('Fail on %s'%id)
     
     return obs_time
