@@ -1,4 +1,7 @@
 from .utils import *
+from alerce.core import Alerce
+import sqlalchemy as sa
+from lasair import LasairError, lasair_client as lasair
 
 
 
@@ -74,20 +77,6 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
     return table
 
-def check_csv_header(file_path, expected_columns):
-    """检查CSV文件中是否包含任何预期的列"""
-    try:
-        # 尝试读取文件的第一行以检查header
-        df_test = pd.read_csv(file_path, nrows=0)  # 只读取header行
-        # 检查是否存在至少一个预期的列名
-        if any(col in df_test.columns for col in expected_columns):
-            return True
-        else:
-            return False
-    except pd.errors.ParserError:
-        # 如果解析错误，则认为不是标准header
-        return False
-
 def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
     
     print('\n\n============================================================')
@@ -133,11 +122,21 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
     
 
 
-def get_Alerce():
-    pass
+def get_Alerce(query):
+    url = "https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"
+    params = requests.get(url).json()['params']
+    engine = sa.create_engine(f"postgresql+psycopg2://{params['user']}:{params['password']}@{params['host']}/{params['dbname']}")
+    engine.begin()
+    alerce_table = pd.read_sql_query(query, con=engine)
+    alerce_table = Table.from_pandas(alerce_table)
+    return alerce_table
+
 
 def get_Lasair():
     pass
+
+
+
 
 def request_obs_time(EMAIL,PASSWORD,ids):
     EMAIL = "liangrd@bao.ac.cn" # your login email in EP TDAIC

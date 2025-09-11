@@ -1,8 +1,12 @@
 import SOCS_Xray
 from astropy.table import Table
 
-tns_table = SOCS_Xray.fetch.get_TNS(save_dir='/Users/liangrunduo/Desktop/Aujust/NAOC/EP/SOCS_data')
-print(tns_table['discoverydate'])
-#SOCS_Xray.fetch.update_WXT_source_list('liangrd@bao.ac.cn','Liang981127','./data')
+#Test get_Alerce
+query = """
+SELECT table_name  FROM information_schema.tables
+WHERE table_schema='alerce'
+ORDER BY table_name;
+"""
 
-#data = Table.read('/Volumes/T7/Shared_Files/EP/Projects/SOCS-Xray/data/tns_public_objects.csv.zip')
+tbl = SOCS_Xray.get_Alerce(query)
+print(tbl)
