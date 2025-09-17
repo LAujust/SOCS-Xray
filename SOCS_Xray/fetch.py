@@ -2,6 +2,7 @@ from .utils import *
 from alerce.core import Alerce
 import sqlalchemy as sa
 from lasair import LasairError, lasair_client as lasair
+import json
 
 
 
@@ -132,8 +133,42 @@ def get_Alerce(query):
     return alerce_table
 
 
-def get_Lasair():
-    pass
+def get_Lasair(ndays):
+    sys.path.append('API_ztf')
+    endpoint = "https://lasair-ztf.lsst.ac.uk/api"
+    oid = 'objectId'
+    raname = 'ramean'
+    decname = 'decmean'
+    API_TOKEN = 'cc411e15090ab35754f0d3673ddb4ceb671ee8cf'
+    L = lasair(API_TOKEN, endpoint=endpoint)
+    
+    rows = L.query("""objects.objectId,
+        objects.ramean,
+        objects.decmean,
+        objects.jdmin - 2400000.5 AS mjdmin,
+        objects.jdmax - 2400000.5 AS mjdmax,
+        objects.magrmin,
+        objects.rmag,
+        sherlock_classifications.classification AS classification""",
+            """objects,
+                sherlock_classifications,
+                watchlist_hits,
+                crossmatch_tns""",
+            """objects.objectId = sherlock_classifications.objectId
+                AND objects.objectId = watchlist_hits.objectId
+                AND objects.jdmin > jdnow() - %s
+                AND NOT (
+                    objects.distpsnr1 < 2
+                    AND objects.sgscore1 > 0.49
+                )
+                AND classification in ("SN","NT","ORPHAN")
+                """%(ndays),
+                limit=1e4)
+
+    #objectIds = [row['objectId'] for row in rows]
+    lasair_table = Table(rows)
+    
+    return lasair_table
 
 
 
