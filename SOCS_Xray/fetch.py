@@ -169,3 +169,33 @@ def request_obs_time(EMAIL,PASSWORD,ids):
             print('Fail on %s'%id)
     
     return obs_time
+
+
+def base_alerce_query(ndet,mjdfirst,types=["SN", "AGN"],classifier='stamp_classifier'):
+    if ndet == 1:
+        ndet = '<2'
+    else:
+        ndet = '>%s'%(ndet-1)
+        
+    query = '''
+        SELECT
+            object.oid, object.meanra, object.meandec, object.firstmjd,
+            object.ndet, object.stellar, probability.probability, 
+            probability.classifier_name, probability.classifier_version,
+            probability.class_name
+        FROM 
+            object 
+        INNER JOIN
+            probability
+        ON 
+            object.oid = probability.oid
+        WHERE
+            object.firstMJD > %s
+            AND probability.classifier_name = '%s'
+            AND probability.class_name IN (%s)
+            AND probability.ranking=1
+            AND probability.probability>0.3
+            AND object.ndet %s
+        '''% (mjdfirst,classifier, ",".join([f"'{i}'" for i in types]),ndet)
+        
+    return query

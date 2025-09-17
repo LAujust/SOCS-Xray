@@ -1,12 +1,11 @@
 import SOCS_Xray
 from astropy.table import Table
+from astropy.time import Time
 
 #Test get_Alerce
-query = """
-SELECT table_name  FROM information_schema.tables
-WHERE table_schema='alerce'
-ORDER BY table_name;
-"""
+tnow = Time.now()
+mjdfirst = tnow.mjd - 1
+query = SOCS_Xray.base_alerce_query(ndet=1,mjdfirst=mjdfirst)
 
 tbl = SOCS_Xray.get_Alerce(query)
 print(tbl)
