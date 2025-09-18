@@ -136,9 +136,6 @@ def get_Alerce(query):
 def get_Lasair(ndays):
     sys.path.append('API_ztf')
     endpoint = "https://lasair-ztf.lsst.ac.uk/api"
-    oid = 'objectId'
-    raname = 'ramean'
-    decname = 'decmean'
     API_TOKEN = 'cc411e15090ab35754f0d3673ddb4ceb671ee8cf'
     L = lasair(API_TOKEN, endpoint=endpoint)
     
@@ -148,6 +145,7 @@ def get_Lasair(ndays):
         objects.jdmin - 2400000.5 AS mjdmin,
         objects.jdmax - 2400000.5 AS mjdmax,
         objects.magrmin,
+        objects.ncandgp AS ndet,
         objects.rmag,
         sherlock_classifications.classification AS classification""",
             """objects,
@@ -165,8 +163,9 @@ def get_Lasair(ndays):
                 """%(ndays),
                 limit=1e4)
 
-    #objectIds = [row['objectId'] for row in rows]
     lasair_table = Table(rows)
+    lasair_table[lasair_table['ndet']==None] = 2
+    lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
     
     return lasair_table
 
