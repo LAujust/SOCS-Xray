@@ -15,6 +15,9 @@ class Pipeline(object):
         self.account = {'email':email,'password':password}  #EPSC account
         
     def initialize(self):
+        """
+        [matched] stores all candidates passed your filters. The unique id is pair of X-ray name and optical name tuple, i.e. (EP240506a, AT2024ofs), (A85_1, SN 025ujd)
+        """
         if not os.path.exists(self.root):
             os.mkdir(self.root)
             print('Working on new direction. ')
