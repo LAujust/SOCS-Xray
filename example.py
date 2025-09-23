@@ -5,7 +5,20 @@ from astropy.time import Time
 #Test get_Alerce
 tnow = Time.now()
 mjdfirst = tnow.mjd - 1
-query = SOCS_Xray.base_alerce_query(ndet=1,mjdfirst=mjdfirst)
+#query = SOCS_Xray.base_alerce_query(ndet=1,mjdfirst=mjdfirst)
 
-tbl = SOCS_Xray.get_Alerce(query)
-print(tbl)
+#tbl = SOCS_Xray.get_Alerce(query)
+#print(tbl)
+
+#tbl = Table.read('/Users/liangrunduo/Desktop/Aujust/NAOC/EP/SOCS_data/tns_public_objects_old.csv',format='csv',header_start=1, data_start=2)
+#tbl.write('/Users/liangrunduo/Desktop/Aujust/NAOC/EP/SOCS_data/tns_public_objects_old.csv',format='csv',overwrite=True)
+#print(tbl)
+
+
+pipe = SOCS_Xray.Pipeline(email='liangrd@bao.ac.cn',
+                          password='Liang981127',
+                          root='/Users/liangrunduo/Desktop/Aujust/NAOC/EP/SOCS_data')
+pipe.update_TNS(replace=False)
+pipe.update_ZTF()
+pipe.TNS_table.pprint(max_lines=50)
+pipe.ZTF_clean.pprint(max_lines=100)

@@ -157,7 +157,19 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
              df_filtered['dt'] = table_filtered['firstmjd'] -  Time(table_filtered['_create_time'].value).mjd
         # ===== Step 6: Save merged table =====
         df_filtered = df_filtered.rename(columns={'_create_time':'fxt_create_time'})
-        df_filtered.to_csv(output_file, index=False)
-        print(f"Saved results to {output_file}")
+        #df_filtered.to_csv(output_file, index=False)
+        return df_filtered
     else:
         print('No matched sources for %s'%(output_file))
+        return None
+        
+        
+def match_cat(source_cat,cat,radius,nthneighbor=1,seperation=False):
+    idx, sep, _ = source_cat.match_to_catalog_sky(cat,nthneighbor=nthneighbor)
+    filtered_id = sep < radius
+    cat_matched_idx, cat_matched_sep = idx[filtered_id], sep[filtered_id]
+    source_matched_idx = filtered_id
+    if seperation:
+        return source_matched_idx, cat_matched_idx, cat_matched_sep
+    else:
+        return source_matched_idx, cat_matched_idx

@@ -78,10 +78,10 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
     return table
 
-def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
+def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
     
     print('\n\n============================================================')
-    print('================= Updata TNS List ===================')
+    print('================= Updata TNS Table ===================')
     print('============================================================')
     
     API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
@@ -119,11 +119,17 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir=',.'):
     os.remove(os.path.join(save_dir,filename))
 
     tns_table = Table.read(os.path.join(save_dir,base_filename),format='csv',header_start=1, data_start=2)
+    tns_table.write(os.path.join(save_dir,base_filename),format='csv',overwrite=True)
     return tns_table
     
 
 
 def get_Alerce(query):
+    
+    print('\n\n============================================================')
+    print('================= Updata Alerce Table ===================')
+    print('============================================================')
+    
     url = "https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"
     params = requests.get(url).json()['params']
     engine = sa.create_engine(f"postgresql+psycopg2://{params['user']}:{params['password']}@{params['host']}/{params['dbname']}")
@@ -134,6 +140,11 @@ def get_Alerce(query):
 
 
 def get_Lasair(ndays):
+    
+    print('\n\n============================================================')
+    print('================= Updata Lasair Table ===================')
+    print('============================================================')
+    
     sys.path.append('API_ztf')
     endpoint = "https://lasair-ztf.lsst.ac.uk/api"
     API_TOKEN = 'cc411e15090ab35754f0d3673ddb4ceb671ee8cf'
