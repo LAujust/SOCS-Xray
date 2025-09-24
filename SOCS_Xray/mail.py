@@ -1,7 +1,5 @@
 from .utils import *
 import smtplib
-from email.message import EmailMessage
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def myaccount():
@@ -13,11 +11,9 @@ def myaccount():
 
 def send_email(smtp_server,smtp_port,sender_email,receiver_emails,password,html_body,title='EP Counterpart Searching Notice'):
     msg = MIMEText(html_body, "html", 'utf-8')
-    msg["From"] = send_email
+    msg["From"] = sender_email
     msg["To"] = ", ".join(receiver_emails)
     msg["Subject"] = title
-    
-    # try:
     with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_emails, msg.as_string())

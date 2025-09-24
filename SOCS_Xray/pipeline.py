@@ -23,23 +23,19 @@ class Pipeline(object):
             os.mkdir(self.root)
             print('Working on new direction. ')
         else:
-            if not os.path.exists(os.path.join(self.root,'matched.yaml')):
-                self.matched = dict()
-                with open(os.path.join(self.root,'matched.yaml'), "w", encoding="utf-8") as f:
-                    yaml.safe_dump(self.matched, f, allow_unicode=True)
-                    f.close()
+            if not os.path.exists(os.path.join(self.root,'matched.csv')):
+                self.matched = Table()
+                self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)
                 print('Starting with NULL dataset. ')
             else:
-                with open(os.path.join(self.root,'matched.yaml'), "r", encoding="utf-8") as f:
-                    self.matched = yaml.safe_load(f)
-                    f.close()
+                self.matched = Table.read(os.path.join(self.root,'matched.csv'),format='csv')
                 print('Matched table loaded. ')
                 
                 
-    def run(self,dt=30,ndays=10,replace=False,show_progress=True,wxt_radii=3.5,fxt_radii=20):
+    def run(self,dt=30,ndays=10,show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False):
         
         if show_progress:
-            pbar = tqdm(total=7, desc="Running Pipelline", ncols=100, dynamic_ncols=True)
+            pbar = tqdm(total=8, desc="Running Pipelline", ncols=100, dynamic_ncols=True)
         else:
             pbar = None
             
@@ -51,7 +47,7 @@ class Pipeline(object):
             pbar.update(1)
         
         #@@@ WXT-TNS @@@
-        self.update_TNS(replace=replace)
+        self.update_TNS(ndays=ndays)
         TNS_c = SkyCoord(self.TNS_table['o_ra'],self.TNS_table['o_dec'],unit=u.deg)
         
         source_matched_idx, cat_matched_idx, cat_matched_sep = match_cat(EP_c,TNS_c,radius=wxt_radii*u.arcmin,seperation=True)
@@ -216,25 +212,39 @@ class Pipeline(object):
                 """
                 
         if len(self.uniform_match) > 0:
+            
+            if update_result:
+                self.matched = vstack((self.matched,self.uniform_match))
+                self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
+                        
+            if pbar:
+                pbar.set_description("Writing Results")
+                pbar.update(1)
+                
             df = self.uniform_match.to_pandas()
             html_table = df.to_html(border=1,
                             index=False,
                             justify="center",
                             col_space=80)
             self.uniform_html = f"""
-                <html>
-                <body>
-                    "<br>"{html_table}
-                    <br>
-                    <p>This is preliminary result from EP-OT searching. 
-                    <p>Best regards,<br>Runduo</p>
-                </body>
-                </html>
-                """
-                
-        if pbar:
-            pbar.set_description("Configuring Email Content")
-            pbar.update(1)
+                                    <html>
+                                    <body>
+                                        "<br>"{html_table}
+                                        <br>
+                                        <p>This is preliminary result from EP-OT searching. 
+                                        <p>Best regards,<br>Runduo</p>
+                                    </body>
+                                    </html>
+                                    """
+                                    
+            if pbar:
+                pbar.set_description("Configuring Email Content")
+                pbar.update(1)
+            
+            
+        
+        #@@@ save result to matched.yaml @@@
+        
 
         
                 
@@ -269,17 +279,15 @@ class Pipeline(object):
         
         return obs_time
     
-    def update_TNS(self,replace=False):
-        if os.path.exists(os.path.join(self.root,'tns_public_objects_old.csv')):   
-            old = Table.read(os.path.join(self.root,'tns_public_objects_old.csv'),format='csv')
-            new = get_TNS(save_dir=self.root)
-            self.TNS_table = setdiff(new,old,keys=["name_prefix","name"])
-        else:
-            self.TNS_table = get_TNS(save_dir=self.root)[:200]
-            new = self.TNS_table
+    def update_TNS(self,ndays=10):
+        # if os.path.exists(os.path.join(self.root,'tns_public_objects.csv')):   
+        #     old = Table.read(os.path.join(self.root,'tns_public_objects.csv'),format='csv')
+        #     new = get_TNS(save_dir=self.root)
+        #     self.TNS_table = setdiff(new,old,keys=["name_prefix","name"])
+        # else:
+        self.TNS_table = get_TNS(save_dir=self.root)
             
-        if replace:
-            new.write(os.path.join(self.root,'tns_public_objects_old.csv'),format='csv',overwrite=True)
+        self.TNS_table.write(os.path.join(self.root,'tns_public_objects.csv'),format='csv',overwrite=True)
             
         tns_name = [self.TNS_table['name_prefix'][i]+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
         self.TNS_table['tns_name'] = tns_name
@@ -289,8 +297,9 @@ class Pipeline(object):
         self.TNS_table.rename_columns(['ra','declination','tns_name'],['o_ra','o_dec','oid'])
         self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
         
-        if len(self.TNS_table) == 0:
-            self.TNS_table = new[:100]
+        tnow = Time.now()
+        mjdmin = tnow.mjd - ndays
+        self.TNS_table = self.TNS_table[self.TNS_table['firstmjd']>=mjdmin]
         
     def update_ZTF(self,ndays=10):
         firstmjd_2 = self.tnow.mjd - ndays #at least 2 det
@@ -313,10 +322,10 @@ class Pipeline(object):
         if alerce_table is None and lasair_table is not None:
             ZTF_clean = lasair_table['objectId','ramean','decmean','mjdmin','ndet','classification']
             ZTF_clean.rename_columns(['objectId','ramean','decmean','mjdmin','classification'],
-                                    ['oid','ztf_ra','ztf_dec','firstmjd','class'])
+                                        ['oid','o_ra','o_dec','firstmjd','class'])
         elif alerce_table is not None and lasair_table is None:
             ZTF_clean = alerce_table['oid','meanra','meandec','probability','firstmjd','ndet','class_name']
-            ZTF_clean.rename_columns(['meanra','meandec','class_name'],['ztf_ra','ztf_dec','class'])
+            ZTF_clean.rename_columns(['meanra','meandec','class_name'],['o_ra','o_dec','class'])
         elif alerce_table is None and lasair_table is None:
             raise KeyError('Fail on Alerce and Lasair')
         else: #Both Lasair and Alerce works
