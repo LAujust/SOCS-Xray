@@ -35,6 +35,209 @@ class Pipeline(object):
                     f.close()
                 print('Matched table loaded. ')
                 
+                
+    def run(self,dt=30,ndays=10,replace=False,show_progress=True,wxt_radii=3.5,fxt_radii=20):
+        
+        if show_progress:
+            pbar = tqdm(total=7, desc="Running Pipelline", ncols=100, dynamic_ncols=True)
+        else:
+            pbar = None
+            
+        #updata ep_source
+        self.ep_source = update_WXT_source_list(EMAIL=self.account['email'],PASSWORD=self.account['password'],save_dir=self.root)
+        EP_c = SkyCoord(self.ep_source['ra'],self.ep_source['dec'],unit=u.deg)
+        if pbar:
+            pbar.set_description("Updateing WXT_source_list")
+            pbar.update(1)
+        
+        #@@@ WXT-TNS @@@
+        self.update_TNS(replace=replace)
+        TNS_c = SkyCoord(self.TNS_table['o_ra'],self.TNS_table['o_dec'],unit=u.deg)
+        
+        source_matched_idx, cat_matched_idx, cat_matched_sep = match_cat(EP_c,TNS_c,radius=wxt_radii*u.arcmin,seperation=True)
+        EP_matched = self.ep_source[source_matched_idx]
+        TNS_matched = self.TNS_table[cat_matched_idx]
+
+        EP_matched = EP_matched['category','simbad_name','tags','id']
+        TNS_matched = TNS_matched
+        table_merge = hstack((EP_matched,TNS_matched))
+        table_merge['separation (arcsec)'] = cat_matched_sep.arcsec
+        table_of_highlight = Table()
+        
+        if len(EP_matched) > 0:
+            tns_time = TNS_matched['firstmjd']
+            wxt_time_raw = request_obs_time(ids=EP_matched['id'],EMAIL=self.account['email'],PASSWORD=self.account['password'])
+            wxt_time = [d if d is not None else '2030-01-01T00:00:00Z' for d in wxt_time_raw]
+            obs_time = Time(wxt_time)
+            delta_t = tns_time - obs_time.mjd
+            table_merge['dt'] = delta_t
+            self.tns_match = table_merge[(table_merge['dt']<dt) & (table_merge['dt']>-dt)]
+        else:
+            self.tns_match = Table()
+            
+        if pbar:
+            pbar.set_description("Processing WXT-TNS")
+            pbar.update(1)
+            
+            
+        #@@@ WXT-ZTF @@@
+        self.update_ZTF(ndays=ndays)
+        ZTF_c = SkyCoord(self.ZTF_clean['o_ra'],self.ZTF_clean['o_dec'],unit=u.deg)
+
+        source_matched_idx, cat_matched_idx, cat_matched_sep = match_cat(EP_c,ZTF_c,radius=wxt_radii*u.arcmin,seperation=True)
+        EP_matched = self.ep_source[source_matched_idx]
+        ZTF_matched = self.ZTF_clean[cat_matched_idx]
+
+        table_merge = hstack((EP_matched,ZTF_matched))
+        table_merge['separation (arcsec)'] = cat_matched_sep.arcsec
+
+        if len(EP_matched) > 0:
+            ztf_time = Time(ZTF_matched['firstmjd'],format='mjd')
+            wxt_time_raw = request_obs_time(ids=EP_matched['id'],EMAIL=self.account['email'],PASSWORD=self.account['password'])
+            wxt_time = [d if d is not None else '2030-01-01T00:00:00Z' for d in wxt_time_raw]
+            obs_time = Time(wxt_time)
+            delta_t = ztf_time.mjd - obs_time.mjd
+            table_merge['dt'] = delta_t
+
+            #table_merge_unique = unique(table_merge,keys='oid')
+            #table_merge = table_merge_unique
+
+            #ndet = 1
+            table_merge_1 = table_merge[table_merge['ndet']==1]
+            table_of_highlight_1 = table_merge_1[(table_merge_1['dt']<1) & (table_merge_1['dt']>-1)]
+
+            #ndet > 1
+            table_merge_2 = table_merge[table_merge['ndet']>1]
+            table_of_highlight_2 = table_merge_2[(table_merge_2['dt']<dt) & (table_merge_2['dt']>-dt)]
+
+            table_of_highlight = vstack((table_of_highlight_1,table_of_highlight_2))
+            self.ztf_match = table_of_highlight
+        else:
+            self.ztf_match = Table()
+            
+        if pbar:
+            pbar.set_description("Processing WXT-ZTF")
+            pbar.update(1)
+            
+        
+        #@@@ FXT-TNS @@@
+        self.fxt_tns_match = search_fxt_from_table(self.TNS_table[:100],email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
+        if len(self.fxt_tns_match) > 0:
+            self.fxt_tns_match = self.fxt_tns_match[(self.fxt_tns_match['dt']<dt) & (self.fxt_tns_match['dt']>-dt)]
+            
+        if pbar:
+            pbar.set_description("Processing FXT-TNS")
+            pbar.update(1)
+            
+            
+        if len(self.ZTF_clean) > 2000:
+            ZTF_clean_fxt = self.ZTF_clean[self.ZTF_clean['ndet']>1]
+        else:
+            ZTF_clean_fxt = self.ZTF_clean
+        self.fxt_ztf_match = search_fxt_from_table(ZTF_clean_fxt ,email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
+        if len(self.fxt_ztf_match) > 0:
+            self.fxt_ztf_match = self.fxt_ztf_match[(self.fxt_ztf_match['dt']<dt) & (self.fxt_ztf_match['dt']>-dt)]
+            
+        if pbar:
+            pbar.set_description("Processing FXT-ZTF")
+            pbar.update(1)
+            
+            
+        #@@@ Resemble Tables @@@
+        col_names = ['ep_name','oid','o_ra','o_dec','separation (arcsec)','dt','link','fxt_name','pipeline']
+        col_types = ['U30','U30','f8','f8','f8','f8','U100','U30','U30']
+        res_table = Table(names=col_names,dtype=col_types)
+        
+        if len(self.tns_match) > 0:
+            tns_match = self.tns_match
+            tns_match['fxt_name'] = ['None'] * len(tns_match)
+            tns_match['pipeline'] = ['WXT-TNS'] * len(tns_match)
+            tns_match.rename_columns(['simbad_name'],['ep_name'])
+            tns_match = tns_match[col_names]
+            for col,col_type in zip(col_names,col_types):
+                tns_match[col].astype(col_type)
+            res_table = vstack((res_table,tns_match[col_names]))
+        
+        if len(self.ztf_match) > 0:
+            ztf_match = self.ztf_match
+            ztf_match['fxt_name'] = ['None'] * len(ztf_match)
+            tns_match['pipeline'] = ['WXT-ZTF'] * len(ztf_match)
+            ztf_match.rename_columns(['simbad_name'],['ep_name'])
+            ztf_match = ztf_match[col_names]
+            for col,col_type in zip(col_names,col_types):
+                ztf_match[col].astype(col_type)
+            res_table = vstack((res_table,ztf_match[col_names]))
+            
+        if len(self.fxt_tns_match) > 0:
+            fxt_tns_match = self.fxt_tns_match
+            fxt_tns_match['pipeline'] = ['FXT-TNS'] * len(fxt_tns_match)
+            fxt_tns_match.rename_columns(['target_name'],['ep_name'])
+            fxt_tns_match = fxt_tns_match[col_names]
+            for col,col_type in zip(col_names,col_types):
+                fxt_tns_match[col].astype(col_type)
+            res_table = vstack((res_table,fxt_tns_match[col_names]))
+            
+        if len(self.fxt_ztf_match) > 0:
+            fxt_ztf_match = self.fxt_ztf_match
+            fxt_ztf_match['pipeline'] = ['FXT-ZTF'] * len(fxt_ztf_match)
+            fxt_ztf_match.rename_columns(['target_name'],['ep_name'])
+            fxt_ztf_match = fxt_ztf_match[col_names]
+            for col,col_type in zip(col_names,col_types):
+                fxt_ztf_match[col].astype(col_type)
+            res_table = vstack((res_table,fxt_ztf_match[col_names]))
+            
+        self.uniform_match = res_table
+        if pbar:
+            pbar.set_description("Combing and Flattening Tables")
+            pbar.update(1)
+        
+        
+        #@@@ Mail Content @@@
+        LABELS = ['WXT-TNS','WXT-ZTF','FXT-TNS','FXT-ZTF']
+        html_parts = []
+        for i,tbl in enumerate([self.tns_match,self.ztf_match,self.fxt_tns_match,self.fxt_ztf_match]):
+            if len(tbl) > 0:
+                df = tbl.to_pandas()
+                html_table = df.to_html(border=1,
+                            index=False,
+                            justify="center",
+                            col_space=80)
+                html_parts.append(f"<h3>{LABELS[i]}</h3>{html_table}")
+        if len(html_parts) > 0:
+            self.raw_html = f"""
+                <html>
+                <body>
+                    {"<br>".join(html_parts)}
+                    <br>
+                    <p>This is preliminary result from EP-OT searching. 
+                    <p>Best regards,<br>Runduo</p>
+                </body>
+                </html>
+                """
+                
+        if len(self.uniform_match) > 0:
+            df = self.uniform_match.to_pandas()
+            html_table = df.to_html(border=1,
+                            index=False,
+                            justify="center",
+                            col_space=80)
+            self.uniform_html = f"""
+                <html>
+                <body>
+                    "<br>"{html_table}
+                    <br>
+                    <p>This is preliminary result from EP-OT searching. 
+                    <p>Best regards,<br>Runduo</p>
+                </body>
+                </html>
+                """
+                
+        if pbar:
+            pbar.set_description("Configuring Email Content")
+            pbar.update(1)
+
+        
+                
         
     def request_obs_time(self,ids):
         url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
@@ -84,7 +287,10 @@ class Pipeline(object):
         self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
         
         self.TNS_table.rename_columns(['ra','declination','tns_name'],['o_ra','o_dec','oid'])
-        self.TNS_table = self.TNS_table['oid','o_ra','o_dec','firstmjd','link']
+        self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
+        
+        if len(self.TNS_table) == 0:
+            self.TNS_table = new[:100]
         
     def update_ZTF(self,ndays=10):
         firstmjd_2 = self.tnow.mjd - ndays #at least 2 det
@@ -137,14 +343,8 @@ class Pipeline(object):
             #Combine to ONE table
             ZTF_clean = vstack((Alerce_clean,Lasair_clean))
 
-        #Save
-        print(' ZTF daily alert searching done! ')
         ZTF_clean_unique = unique(ZTF_clean,keys='oid')
-        self.ZTF_clean = ZTF_clean_unique['oid','o_ra','o_dec','firstmjd','link']
+        self.ZTF_clean = ZTF_clean_unique['oid','o_ra','o_dec','firstmjd','link','ndet']
         
-        
-        
-    def run(self,ndays=10):
-        pass
         
     

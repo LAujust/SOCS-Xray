@@ -1,7 +1,7 @@
 from .utils import *
-import datetime
+from datetime import datetime
 
-def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, output_file, oid='oid', cols=None):
+def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, oid='oid', cols=None):
     """
     Query EP API for FXT sources given RA/Dec table and multiple search radii.
     Results are merged back into the input table.
@@ -14,17 +14,12 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         Column names for RA and Dec in the input table.
     radii : float
         search radii in arcseconds.
-    output_file : str
-        Path to save merged table with search results.
     oid : str
     'oid' or 'full_name'
     """
     
     # ===== Step 1: Load table =====
-    if input_file.endswith(".csv"):
-        df = pd.read_csv(input_file)
-    else:
-        df = pd.read_excel(input_file)
+    df = input_file.to_pandas()
         
     if cols:
         df = df[cols]
@@ -55,7 +50,7 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
 
     # ===== Step 4: Prepare output =====
     # Make columns for each radius
-    fxt_base_cols = ["_create_time", "fxt_name", "target_name", "detnam"]
+    fxt_base_cols = ["_create_time", "fxt_name", "target_name", "detnam","ra","dec"]
     for r in fxt_base_cols:
         df[r] = None
         
@@ -81,7 +76,8 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         ]
 
         if radii:
-            print(f"Processing batch {batch_idx+1}/{total_batches} — radius {radii} arcsec")
+            if batch_idx%5 == 0:
+                print(f"Processing batch {batch_idx+1}/{total_batches} — radius {radii} arcsec")
 
             batch_payload = {
                 "triplets": triplets_base,
@@ -116,8 +112,9 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
                             match_table = match_table_raw.drop_duplicates(subset="fxt_name", keep="last")
                             
                             match_table = Table.from_pandas(match_table)
-                            #match_table.pprint(max_width=-1)
-                            match_table = match_table[["_create_time", "fxt_name", "target_name", "detnam"]]
+                            
+                            match_table = match_table[["_create_time", "fxt_name", "target_name", "detnam","ra","dec"]]
+                            
                             create_times = match_table["_create_time"].value
                             cts = [datetime.strptime(i, "%a, %d %b %Y %H:%M:%S %Z") for i in create_times]
                             ct = [Time(i.isoformat().replace('T',' ')).iso for i in cts]
@@ -128,28 +125,34 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
                                     np.repeat(df_sel.values, len(match_table), axis=0), 
                                     columns=columns
                                 )
+                        
                             for r in fxt_base_cols:
+                                #print(match_table[r])
                                 df_dup.loc[:, r] = match_table[r]
                             
                             if df_filtered is None:
                                 df_filtered = df_dup
                             else:
                                 df_filtered = pd.concat([df_filtered,df_dup])
+                                
 
                 else:
                     print(f"API error: {observations_data.get('message', 'Unknown error')}")
 
             except Exception as e:
                 print(f"Failed batch {batch_idx+1} radius {radii}: {e}")
-                print(df_filtered)
                 
     #df_filtered = df[df["fxt_name"].notnull() & (df["fxt_name"] != "")]
     #table_filtered.pprint(max_width=-1)
     if df_filtered is not None:
         #print(df_filtered)
         table_filtered = Table.from_pandas(df_filtered)
-        #print(np.array(table_filtered['_create_time'].value))
-        #print(Time(table_filtered['_create_time'].value[0]).mjd)
+        c_fxt = SkyCoord(table_filtered['ra'],table_filtered['dec'],unit=u.deg)
+        c_o = SkyCoord(table_filtered[ra_col],table_filtered[dec_col],unit=u.deg)
+        sep = c_fxt.separation(c_o)
+        table_filtered['seperation (arcsec)'] = sep.arcsec
+        df_filtered = table_filtered.to_pandas()
+        
         try:  
             dt = Time(table_filtered['discoverydate']).mjd - Time(table_filtered['_create_time'].value).mjd
             df_filtered['dt'] = Time(table_filtered['discoverydate']).mjd - Time(table_filtered['_create_time'].value).mjd
@@ -160,8 +163,8 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         #df_filtered.to_csv(output_file, index=False)
         return df_filtered
     else:
-        print('No matched sources for %s'%(output_file))
-        return None
+        print('No matched sources')
+        return Table()
         
         
 def match_cat(source_cat,cat,radius,nthneighbor=1,seperation=False):

@@ -8,10 +8,6 @@ import json
 
 def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
-    print('\n\n============================================================')
-    print('================= Updata WXT Source List ===================')
-    print('============================================================')
-
     #Initialization
     url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
     api_url = "https://ep.bao.ac.cn/ep/data_center/api/identified_source_list"
@@ -80,10 +76,6 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
 
 def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
     
-    print('\n\n============================================================')
-    print('================= Updata TNS Table ===================')
-    print('============================================================')
-    
     API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
     BOT_ID = '164028'
     BOT_NAME = 'bot_BC'
@@ -107,7 +99,6 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
         with open(os.path.join(save_dir,filename), 'wb') as file:
             for chunk in response.iter_content(1024):
                 file.write(chunk)
-        print(f"Downloaded: {filename}")
     else:
         print(f"Failed to download {filename}. Status code: {response.status_code}")
         
@@ -125,11 +116,7 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
 
 
 def get_Alerce(query):
-    
-    print('\n\n============================================================')
-    print('================= Updata Alerce Table ===================')
-    print('============================================================')
-    
+
     url = "https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"
     params = requests.get(url).json()['params']
     engine = sa.create_engine(f"postgresql+psycopg2://{params['user']}:{params['password']}@{params['host']}/{params['dbname']}")
@@ -140,10 +127,6 @@ def get_Alerce(query):
 
 
 def get_Lasair(ndays):
-    
-    print('\n\n============================================================')
-    print('================= Updata Lasair Table ===================')
-    print('============================================================')
     
     sys.path.append('API_ztf')
     endpoint = "https://lasair-ztf.lsst.ac.uk/api"

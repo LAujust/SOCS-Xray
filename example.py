@@ -18,7 +18,8 @@ mjdfirst = tnow.mjd - 1
 pipe = SOCS_Xray.Pipeline(email='liangrd@bao.ac.cn',
                           password='Liang981127',
                           root='/Users/liangrunduo/Desktop/Aujust/NAOC/EP/SOCS_data')
-pipe.update_TNS(replace=False)
-pipe.update_ZTF()
-pipe.TNS_table.pprint(max_lines=50)
-pipe.ZTF_clean.pprint(max_lines=100)
+
+pipe.run()
+
+pipe.tns_match.pprint()
+pipe.ztf_match.pprint()
