@@ -5,3 +5,5 @@ pandas>=2.2.3
 pyyaml>=6.0.2
 requests >= 2.30.0
 tqdm >= 4.60.0
+alerce >= 1.4.0
+lasair >= 0.1.1
