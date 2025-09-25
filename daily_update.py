@@ -20,7 +20,13 @@ with open("mail_list.txt") as f:
 #                   'liuyuan@bao.ac.cn']
 null_receiver = ['liangrd@bao.ac.cn','aujust@mail.ustc.edu.cn']
 
-save_dir = "output"
+# 当前仓库根目录
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# output 目录（确保存在）
+save_dir = os.path.join(base_dir, "output")
+os.makedirs(save_dir, exist_ok=True)
+
 os.makedirs(save_dir, exist_ok=True)
 
 pipe = SOCS_Xray.Pipeline(email=tdic_email,
