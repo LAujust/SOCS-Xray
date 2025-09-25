@@ -1,0 +1,41 @@
+name: Daily Example Run
+
+on:
+  schedule:
+    # 每天北京时间早上 9 点运行 (UTC 1 点)
+    - cron: "0 1 * * *"
+  workflow_dispatch:  # 允许你手动触发
+
+jobs:
+  run-example:
+    runs-on: ubuntu-latest
+    env:
+      TDIC_EMAIL: ${{ secrets.TDIC_EMAIL }}
+      TDIC_PASSWORD: ${{ secrets.TDIC_PASSWORD }}
+      SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+      SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+      
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run script
+        run: |
+          python daily_update.py
+
+      - name: Save output
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-output
+          path: output/   # 你脚本生成的目录或文件
