@@ -293,21 +293,33 @@ class Pipeline(object):
         #     new = get_TNS(save_dir=self.root)
         #     self.TNS_table = setdiff(new,old,keys=["name_prefix","name"])
         # else:
-        self.TNS_table = get_TNS(save_dir=self.root)
+        try:
+            self.TNS_table = get_TNS(save_dir=self.root)
+                
+            self.TNS_table.write(os.path.join(self.root,'tns_public_objects.csv'),format='csv',overwrite=True)
+                
+            tns_name = [self.TNS_table['name_prefix'][i]+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
+            self.TNS_table['tns_name'] = tns_name
+            self.TNS_table['firstmjd'] = Time(self.TNS_table['discoverydate']).mjd
+            self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
             
-        self.TNS_table.write(os.path.join(self.root,'tns_public_objects.csv'),format='csv',overwrite=True)
+            self.TNS_table.rename_columns(['ra','declination','tns_name'],['o_ra','o_dec','oid'])
+            self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
             
-        tns_name = [self.TNS_table['name_prefix'][i]+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
-        self.TNS_table['tns_name'] = tns_name
-        self.TNS_table['firstmjd'] = Time(self.TNS_table['discoverydate']).mjd
-        self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
-        
-        self.TNS_table.rename_columns(['ra','declination','tns_name'],['o_ra','o_dec','oid'])
-        self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
-        
-        tnow = Time.now()
-        mjdmin = tnow.mjd - ndays
-        self.TNS_table = self.TNS_table[self.TNS_table['firstmjd']>=mjdmin]
+            tnow = Time.now()
+            mjdmin = tnow.mjd - ndays
+            self.TNS_table = self.TNS_table[self.TNS_table['firstmjd']>=mjdmin]
+        except:
+            self.TNS_table = search_TNS(save_dir=self.root)
+            coord = SkyCoord(self.TNS_table['RA'],self.TNS_table['DEC'],unit=(u.hourangle, u.deg))
+            self.TNS_table['RA'] = coord.ra.deg
+            self.TNS_table['DEC'] = coord.dec.deg
+            self.TNS_table['name'] = [self.TNS_table['Name'][i].split(' ')[-1] for i in range(len(self.TNS_table))]
+            self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
+            self.TNS_table['firstmjd'] = Time(self.TNS_table['Discovery Date (UT)']).mjd
+            self.TNS_table.rename_columns(['Name','RA','DEC','Discovery Date (UT)'],
+                                            ['oid','o_ra','o_dec','discoverydate'])
+            self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
         
     def update_ZTF(self,ndays=10):
         firstmjd_2 = self.tnow.mjd - ndays #at least 2 det

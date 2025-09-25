@@ -232,7 +232,7 @@ def base_alerce_query(ndet,mjdfirst,types=["SN", "AGN"],classifier='stamp_classi
 
 
 def search_TNS(user_id,user_name,url_parameters={"discovered_period_value" : "10", "discovered_period_units" : "days", 
-                        "format" : "csv", "num_page" : "200",}):
+                        "format" : "csv", "num_page" : "200",},save_dir='./'):
     TNS                  = "www.wis-tns.org"
     url_tns_search       = "https://" + TNS + "/search"
     TNS_UID              = user_id
@@ -315,7 +315,7 @@ def search_TNS(user_id,user_name,url_parameters={"discovered_period_value" : "10
             current_datetime = datetime.datetime.now()
             current_date_time = current_datetime.strftime("%Y%m%d_%H%M%S")
             # current working directory
-            cwd = os.getcwd()        
+            cwd = save_dir       
             # create searched results folder
             if MERGE_TO_SINGLE_FILE == 0:
                 tns_search_folder = "tns_search_data_" + current_date_time
