@@ -23,6 +23,7 @@ null_receiver = ['liangrd@bao.ac.cn','aujust@mail.ustc.edu.cn']
 base_dir = os.environ.get("GITHUB_WORKSPACE", os.path.dirname(os.path.abspath(__file__)))
 
 save_dir = os.path.join(base_dir, "output")
+print('DIR:%s'%save_dir)
 os.makedirs(save_dir, exist_ok=True)
 
 
