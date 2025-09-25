@@ -50,7 +50,7 @@ $\mathcal{L} = (P_{\mathrm{X}} + P_{\mathrm{astro}})(1-P_{\mathrm{cc}})$
 
 All matched candidates satisfied designed filter will be stored in `./main/matched.csv`, with unique `ID`(`EP_name`) as tuple of X-ray/Optical name pair, i.e. (EP240506a, AT2024ofs), (A85_1, SN025ujd). Note: The FXT name in the pair is designated as the `target_name + i`, where `i` represent this is the $i$ th matched transient to the target. 
 
-You can run this pipeline daily or hourly, by just modifying the example code `daily_update.py`, in which you should set all account and password, and email config (which use SSH priorly), and use `cron` to run at certain time. Alternatively, it also can be run in the workflow [Daily Run] (fork repo needed), in which you should set all account/password in `Settings -> Secrets and Variables -> Actions -> New repository secret`. Required Keys are list below:
+You can run this pipeline daily or hourly, by just modifying the example code `daily_update.py`, in which you should set all account and password, and email config (which use SSH priorly), and use [`cron`](https://en.wikipedia.org/wiki/Cron) to run at certain time. Alternatively, it also can be run in the workflow [Daily Run] (fork repo needed), in which you should set all account/password in `Settings -> Secrets and Variables -> Actions -> New repository secret`. Required Keys are list below:
 
 | Secret Name   | Description | Example |
 |--------|-----|-------|
