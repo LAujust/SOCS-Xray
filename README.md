@@ -1,7 +1,7 @@
 # SOCS-Xray
 Synthetic Optical Counterparts Searching for Time-domain X-ray Survey
 
-By defult, the `pipeline` incorporates X-ray source candidates from EP-WXT and EP-FXT, with optical transient candidates from TNS, ZTF, LSST, .etc.
+By defult, the `pipeline` incorporates X-ray source candidates from EP-WXT and EP-FXT, with optical transient candidates from TNS, ZTF, LSST, .etc. See details in the documentation [here](https://socs-xray.readthedocs.io/en/latest/).
 
 ## Installation
 
