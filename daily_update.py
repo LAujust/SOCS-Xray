@@ -20,12 +20,11 @@ with open("mail_list.txt") as f:
 #                   'liuyuan@bao.ac.cn']
 null_receiver = ['liangrd@bao.ac.cn','aujust@mail.ustc.edu.cn']
 
-
 os.makedirs("output", exist_ok=True)
 
 pipe = SOCS_Xray.Pipeline(email=tdic_email,
                           password=tdic_password,
-                          root='output',)
+                          root='output"',)
 
 pipe.run(dt=30,update_result=True)
 
