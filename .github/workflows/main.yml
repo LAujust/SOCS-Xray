@@ -1,4 +1,4 @@
-name: Daily Example Run
+name: Dailygi Run
 
 on:
   schedule:

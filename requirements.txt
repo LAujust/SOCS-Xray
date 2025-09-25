@@ -7,3 +7,5 @@ requests >= 2.30.0
 tqdm >= 4.60.0
 alerce >= 1.4.0
 lasair >= 0.1.1
+sqlalchemy >= 2.0.43
+psycopg2-binary >= 2.9.10
