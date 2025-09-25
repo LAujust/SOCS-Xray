@@ -279,7 +279,7 @@ class Pipeline(object):
         
         return obs_time
     
-    def update_TNS(self,ndays=10):
+    def update_TNS(self,ndays=2):
         # if os.path.exists(os.path.join(self.root,'tns_public_objects.csv')):   
         #     old = Table.read(os.path.join(self.root,'tns_public_objects.csv'),format='csv')
         #     new = get_TNS(save_dir=self.root)
