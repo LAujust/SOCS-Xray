@@ -26,7 +26,7 @@ pipe = SOCS_Xray.Pipeline(email=tdic_email,
                           password=tdic_password,
                           root='output"',)
 
-pipe.run(dt=30,update_result=True)
+pipe.run(dt=30,update_result=True,ndays=5)
 
 if len(pipe.uniform_match) > 0:
     print(pipe.uniform_match)
