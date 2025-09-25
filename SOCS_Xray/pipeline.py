@@ -310,7 +310,7 @@ class Pipeline(object):
             mjdmin = tnow.mjd - ndays
             self.TNS_table = self.TNS_table[self.TNS_table['firstmjd']>=mjdmin]
         except:
-            self.TNS_table = search_TNS(save_dir=self.root)
+            self.TNS_table = search_TNS(user_id="3740",user_name='Aujust',save_dir=self.root)
             coord = SkyCoord(self.TNS_table['RA'],self.TNS_table['DEC'],unit=(u.hourangle, u.deg))
             self.TNS_table['RA'] = coord.ra.deg
             self.TNS_table['DEC'] = coord.dec.deg
