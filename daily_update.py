@@ -24,7 +24,7 @@ os.makedirs("output", exist_ok=True)
 
 pipe = SOCS_Xray.Pipeline(email=tdic_email,
                           password=tdic_password,
-                          root='output"',)
+                          root='output',)
 
 pipe.run(dt=30,update_result=True,ndays=5)
 
