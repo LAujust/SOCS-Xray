@@ -76,8 +76,7 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         ]
 
         if radii:
-            if batch_idx%5 == 0:
-                print(f"Processing batch {batch_idx+1}/{total_batches} — radius {radii} arcsec")
+            print(f"Processing batch {batch_idx+1}/{total_batches} — radius {radii} arcsec")
 
             batch_payload = {
                 "triplets": triplets_base,

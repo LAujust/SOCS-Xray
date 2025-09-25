@@ -48,4 +48,17 @@ $\mathcal{L} = (P_{\mathrm{X}} + P_{\mathrm{astro}})(1-P_{\mathrm{cc}})$
 , where $P_{\mathrm{X}},P_{\mathrm{astro}}$ are the probability of 'real' source, and $P_{\mathrm{cc}}$ is the probability of chance coincidence, which can be estimated by simulation or statistics on data.
 
 
-All matched candidates satisfied designed filter will be stored in `./main/matched.yaml`, with unique `ID` as tuple of X-ray/Optical name pair, i.e. (EP240506a, AT2024ofs), (A85_1, SN025ujd). Note: The FXT name in the pair is designated as the `target_name + i`, where `i` represent this is the $i$ th matched transient to the target. 
+All matched candidates satisfied designed filter will be stored in `./main/matched.csv`, with unique `ID`(`EP_name`) as tuple of X-ray/Optical name pair, i.e. (EP240506a, AT2024ofs), (A85_1, SN025ujd). Note: The FXT name in the pair is designated as the `target_name + i`, where `i` represent this is the $i$ th matched transient to the target. 
+
+You can run this pipeline daily or hourly, by just modifying the example code `daily_update.py`, in which you should set all account and password, and email config (which use SSH priorly), and use `cron` to run at certain time. Alternatively, it also can be run in the workflow [Daily Run] (fork repo needed), in which you should set all account/password in `Settings -> Secrets and Variables -> Actions -> New repository secret`. Required Keys are list below:
+
+| Secret Name   | Description | Example |
+|--------|-----|-------|
+| TDIC_EMAIL  | EP Account  | usrname    |
+| TDIC_PASSWORD    | EP Password  | password    |
+| SMTP_SERVER| SMTP server  | mail.ustc.edu.cn    |
+| SMTP_PORT  | SMTP Port (465 for SSH)  | 465    |
+| SENDER_EMAIL  | sender email  | youremail@mail.ustc.edu.cn |
+| SENDER_PASSWORD  | sender password (which is different from login password)  | pass |
+
+The receiver mail list should be written in a `mail_list.txt` file. 

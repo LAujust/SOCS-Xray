@@ -35,21 +35,31 @@ class Pipeline(object):
     def run(self,dt=30,ndays=10,show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False):
         
         if show_progress:
-            pbar = tqdm(total=8, desc="Running Pipelline", ncols=100, dynamic_ncols=True)
+            pbar = ' ================ '
+            step = 0
+            #pbar = tqdm(total=8, desc="Running Pipelline", ncols=100, dynamic_ncols=True)
         else:
             pbar = None
             
         #updata ep_source
+        if pbar:
+            step += 1
+            print(pbar + '[%s]: Updateing WXT_source_list'%step + pbar)
+            # pbar.set_description("Updateing WXT_source_list")
+            # pbar.update(1)
+            
         self.ep_source = update_WXT_source_list(EMAIL=self.account['email'],PASSWORD=self.account['password'],save_dir=self.root)
         EP_c = SkyCoord(self.ep_source['ra'],self.ep_source['dec'],unit=u.deg)
-        if pbar:
-            pbar.set_description("Updateing WXT_source_list")
-            pbar.update(1)
         
+        #@@@ Update TNS @@@
         #@@@ WXT-TNS @@@
+        if pbar:
+            step += 1 
+            print(pbar + '[%s]: Processing WXT-TNS'%step + pbar)
+            
         self.update_TNS(ndays=ndays)
         TNS_c = SkyCoord(self.TNS_table['o_ra'],self.TNS_table['o_dec'],unit=u.deg)
-        
+            
         source_matched_idx, cat_matched_idx, cat_matched_sep = match_cat(EP_c,TNS_c,radius=wxt_radii*u.arcmin,seperation=True)
         EP_matched = self.ep_source[source_matched_idx]
         TNS_matched = self.TNS_table[cat_matched_idx]
@@ -71,12 +81,13 @@ class Pipeline(object):
         else:
             self.tns_match = Table()
             
-        if pbar:
-            pbar.set_description("Processing WXT-TNS")
-            pbar.update(1)
             
             
         #@@@ WXT-ZTF @@@
+        if pbar:
+            step += 1
+            print(pbar + '[%s]: Processing WXT-ZTF'%step + pbar)
+            
         self.update_ZTF(ndays=ndays)
         ZTF_c = SkyCoord(self.ZTF_clean['o_ra'],self.ZTF_clean['o_dec'],unit=u.deg)
 
@@ -111,35 +122,39 @@ class Pipeline(object):
         else:
             self.ztf_match = Table()
             
-        if pbar:
-            pbar.set_description("Processing WXT-ZTF")
-            pbar.update(1)
             
         
         #@@@ FXT-TNS @@@
+        if pbar:
+            step += 1
+            print(pbar + '[%s]: Processing FXT-TNS'%step + pbar)
+            
         self.fxt_tns_match = search_fxt_from_table(self.TNS_table[:100],email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
         if len(self.fxt_tns_match) > 0:
             self.fxt_tns_match = self.fxt_tns_match[(self.fxt_tns_match['dt']<dt) & (self.fxt_tns_match['dt']>-dt)]
             
+        #@@@ FXT-ZTF @@@
         if pbar:
-            pbar.set_description("Processing FXT-TNS")
-            pbar.update(1)
+            step += 1
+            print(pbar + '[%s]: Processing FXT-ZTF'%step + pbar)
             
             
         if len(self.ZTF_clean) > 2000:
             ZTF_clean_fxt = self.ZTF_clean[self.ZTF_clean['ndet']>1]
+            print('Processing ndet > 1 with %s sources'%len(ZTF_clean_fxt))
         else:
             ZTF_clean_fxt = self.ZTF_clean
         self.fxt_ztf_match = search_fxt_from_table(ZTF_clean_fxt ,email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
         if len(self.fxt_ztf_match) > 0:
             self.fxt_ztf_match = self.fxt_ztf_match[(self.fxt_ztf_match['dt']<dt) & (self.fxt_ztf_match['dt']>-dt)]
             
-        if pbar:
-            pbar.set_description("Processing FXT-ZTF")
-            pbar.update(1)
             
             
         #@@@ Resemble Tables @@@
+        if pbar:
+            step += 1
+            print(pbar + '[%s]: Resembling Tables'%step + pbar)
+            
         col_names = ['ep_name','oid','o_ra','o_dec','separation (arcsec)','dt','link','fxt_name','pipeline']
         col_types = ['U30','U30','f8','f8','f8','f8','U100','U30','U30']
         res_table = Table(names=col_names,dtype=col_types)
@@ -183,12 +198,13 @@ class Pipeline(object):
             res_table = vstack((res_table,fxt_ztf_match[col_names]))
             
         self.uniform_match = res_table
-        if pbar:
-            pbar.set_description("Combing and Flattening Tables")
-            pbar.update(1)
         
         
         #@@@ Mail Content @@@
+        if pbar:
+            step += 1
+            print(pbar + '[%s]: Preparing Emails'%step + pbar)
+            
         LABELS = ['WXT-TNS','WXT-ZTF','FXT-TNS','FXT-ZTF']
         html_parts = []
         for i,tbl in enumerate([self.tns_match,self.ztf_match,self.fxt_tns_match,self.fxt_ztf_match]):
@@ -211,15 +227,16 @@ class Pipeline(object):
                 </html>
                 """
                 
+        if pbar:
+            step += 1
+            print(pbar + '[%s]: Saving Results'%step + pbar)
+            
         if len(self.uniform_match) > 0:
             
             if update_result:
                 self.matched = vstack((self.matched,self.uniform_match))
                 self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
                         
-            if pbar:
-                pbar.set_description("Writing Results")
-                pbar.update(1)
                 
             df = self.uniform_match.to_pandas()
             html_table = df.to_html(border=1,
@@ -236,15 +253,6 @@ class Pipeline(object):
                                     </body>
                                     </html>
                                     """
-                                    
-            if pbar:
-                pbar.set_description("Configuring Email Content")
-                pbar.update(1)
-            
-            
-        
-        #@@@ save result to matched.yaml @@@
-        
 
         
                 
