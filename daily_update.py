@@ -12,9 +12,12 @@ smtp_port = os.environ["SMTP_PORT"]
 sender_email = os.environ["SENDER_EMAIL"]
 sender_password = os.environ["SENDER_PASSWORD"]
 
-success_receiver = ['liangrd@bao.ac.cn','liwx@bao.ac.cn','wmy@nao.cas.cn',
-                  'hsun@nao.cas.cn','ccjin@bao.ac.cn','dyli@nao.cas.cn',
-                  'liuyuan@bao.ac.cn']
+with open("maillist.txt") as f:
+    recipients = [line.strip() for line in f if line.strip()]
+
+# success_receiver = ['liangrd@bao.ac.cn','liwx@bao.ac.cn','wmy@nao.cas.cn',
+#                   'hsun@nao.cas.cn','ccjin@bao.ac.cn','dyli@nao.cas.cn',
+#                   'liuyuan@bao.ac.cn']
 null_receiver = ['liangrd@bao.ac.cn','aujust@mail.ustc.edu.cn']
 
 
