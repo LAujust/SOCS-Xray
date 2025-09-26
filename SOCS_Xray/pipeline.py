@@ -32,9 +32,10 @@ class Pipeline(object):
                 print('Matched table loaded. ')
                 
                 
-    def run(self,dt=30,ndays=5,show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False,fxt_search_max=3000):
+    def run(self,dt=[-5,30],show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False,fxt_search_max=3000):
+        
         """
-        dt [float]: time offset between x-ray observation time and optical discovery date. Default 30;
+        dt [list,numpy.array]: time offset between x-ray observation time and optical discovery date. Default [-5,30];
         ndays [float]: days back for retrieving history data. Default 5;
         show_progress [bool]: Default True;
         wxt_radii [float]: wxt searching radii in arcmin. Default 3.5;
@@ -42,6 +43,9 @@ class Pipeline(object):
         update_result [bool]: Update new result to matched.csv. Default False; 
         fxt_search_max [float]:   Maximum sources for fxt_serach(). If exceeded, pipeline will search sources with ndet > 1. Default 3000. 
         """
+        
+        ndays = abs(dt[0])
+        dt = abs(dt[1])
         
         if show_progress:
             pbar = ' ================ '
