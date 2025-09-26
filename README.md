@@ -1,8 +1,7 @@
 # SOCS-Xray
 Synthetic Optical Counterparts Searching for Time-domain X-ray Survey
 
-[![Hits-of-Code](https://hitsofcode.com/github/LAujust/SOCS_Xray?branch=master)](https://hitsofcode.com/github/LAujust/SOCS_Xray/view?branch=master)
-
+[![Hits-of-Code](https://hitsofcode.com/github/LAujust/SOCS-Xray?branch=master)](https://hitsofcode.com/github/LAujust/SOCS-Xray/view?branch=master)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 By defult, the `pipeline` incorporates X-ray source candidates from EP-WXT and EP-FXT, with optical transient candidates from TNS, ZTF, LSST, .etc. See details in the documentation [here](https://socs-xray.readthedocs.io/en/latest/).
