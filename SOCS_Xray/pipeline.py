@@ -32,7 +32,16 @@ class Pipeline(object):
                 print('Matched table loaded. ')
                 
                 
-    def run(self,dt=30,ndays=10,show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False):
+    def run(self,dt=30,ndays=5,show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False,fxt_search_max=3000):
+        """
+        dt [float]: time offset between x-ray observation time and optical discovery date. Default 30;
+        ndays [float]: days back for retrieving history data. Default 5;
+        show_progress [bool]: Default True;
+        wxt_radii [float]: wxt searching radii in arcmin. Default 3.5;
+        fxt_radii [float]: fxt searching radii in arcsec. Default 20; 
+        update_result [bool]: Update new result to matched.csv. Default False; 
+        fxt_search_max [float]:   Maximum sources for fxt_serach(). If exceeded, pipeline will search sources with ndet > 1. Default 3000. 
+        """
         
         if show_progress:
             pbar = ' ================ '
@@ -49,6 +58,7 @@ class Pipeline(object):
             # pbar.update(1)
             
         self.ep_source = update_WXT_source_list(EMAIL=self.account['email'],PASSWORD=self.account['password'],save_dir=self.root)
+        self.ep_source['ep_link'] = ['https://ep.bao.ac.cn/ep/data_center/stp_source_detail/%s/known'%id for id in self.ep_source['id']]
         EP_c = SkyCoord(self.ep_source['ra'],self.ep_source['dec'],unit=u.deg)
         
         #@@@ Update TNS @@@
@@ -64,7 +74,7 @@ class Pipeline(object):
         EP_matched = self.ep_source[source_matched_idx]
         TNS_matched = self.TNS_table[cat_matched_idx]
 
-        EP_matched = EP_matched['category','simbad_name','tags','id']
+        #EP_matched = EP_matched['category','simbad_name','tags','id','ep_link']
         TNS_matched = TNS_matched
         table_merge = hstack((EP_matched,TNS_matched))
         table_merge['separation (arcsec)'] = cat_matched_sep.arcsec
@@ -139,7 +149,7 @@ class Pipeline(object):
             print(pbar + '[%s]: Processing FXT-ZTF'%step + pbar)
             
             
-        if len(self.ZTF_clean) > 2000:
+        if len(self.ZTF_clean) > fxt_search_max:
             ZTF_clean_fxt = self.ZTF_clean[self.ZTF_clean['ndet']>1]
             print('Processing ndet > 1 with %s sources'%len(ZTF_clean_fxt))
         else:
@@ -155,8 +165,8 @@ class Pipeline(object):
             step += 1
             print(pbar + '[%s]: Resembling Tables'%step + pbar)
             
-        col_names = ['ep_name','oid','o_ra','o_dec','separation (arcsec)','dt','link','fxt_name','pipeline']
-        col_types = ['U30','U30','f8','f8','f8','f8','U100','U30','U30']
+        col_names = ['ep_name','oid','o_ra','o_dec','separation (arcsec)','firstmjd','dt','link','ep_link','fxt_name','pipeline']
+        col_types = ['U30','U30','f8','f8','f8','f8','f8','U100','U100','U30','U30']
         res_table = Table(names=col_names,dtype=col_types)
         
         if len(self.tns_match) > 0:
@@ -166,7 +176,7 @@ class Pipeline(object):
             tns_match.rename_columns(['simbad_name'],['ep_name'])
             tns_match = tns_match[col_names]
             for col,col_type in zip(col_names,col_types):
-                tns_match[col].astype(col_type)
+                tns_match[col] = tns_match[col].astype(col_type)
             res_table = vstack((res_table,tns_match[col_names]))
         
         if len(self.ztf_match) > 0:
@@ -176,25 +186,27 @@ class Pipeline(object):
             ztf_match.rename_columns(['simbad_name'],['ep_name'])
             ztf_match = ztf_match[col_names]
             for col,col_type in zip(col_names,col_types):
-                ztf_match[col].astype(col_type)
+                ztf_match[col] = ztf_match[col].astype(col_type)
             res_table = vstack((res_table,ztf_match[col_names]))
             
         if len(self.fxt_tns_match) > 0:
             fxt_tns_match = self.fxt_tns_match
+            fxt_tns_match['ep_link'] = ['https://ep.bao.ac.cn/ep/data_center/fxt_src_detail/%s'%id for id in fxt_tns_match['id']]
             fxt_tns_match['pipeline'] = ['FXT-TNS'] * len(fxt_tns_match)
             fxt_tns_match.rename_columns(['target_name'],['ep_name'])
             fxt_tns_match = fxt_tns_match[col_names]
             for col,col_type in zip(col_names,col_types):
-                fxt_tns_match[col].astype(col_type)
+                fxt_tns_match[col] = fxt_tns_match[col].astype(col_type)
             res_table = vstack((res_table,fxt_tns_match[col_names]))
             
         if len(self.fxt_ztf_match) > 0:
             fxt_ztf_match = self.fxt_ztf_match
+            fxt_ztf_match['ep_link'] = ['https://ep.bao.ac.cn/ep/data_center/fxt_src_detail/%s'%id for id in fxt_ztf_match['id']]
             fxt_ztf_match['pipeline'] = ['FXT-ZTF'] * len(fxt_ztf_match)
             fxt_ztf_match.rename_columns(['target_name'],['ep_name'])
             fxt_ztf_match = fxt_ztf_match[col_names]
             for col,col_type in zip(col_names,col_types):
-                fxt_ztf_match[col].astype(col_type)
+                fxt_ztf_match[col] = fxt_ztf_match[col].astype(col_type)
             res_table = vstack((res_table,fxt_ztf_match[col_names]))
             
         self.uniform_match = res_table
@@ -234,7 +246,7 @@ class Pipeline(object):
         if len(self.uniform_match) > 0:
             
             if update_result:
-                self.matched = vstack((self.matched,self.uniform_match))
+                self.matched = unique(vstack((self.matched,self.uniform_match)))
                 self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
                         
                 

@@ -50,7 +50,7 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
 
     # ===== Step 4: Prepare output =====
     # Make columns for each radius
-    fxt_base_cols = ["_create_time", "fxt_name", "target_name", "detnam","ra","dec"]
+    fxt_base_cols = ["_create_time", "fxt_name", "target_name", "detnam","ra","dec","id"]
     for r in fxt_base_cols:
         df[r] = None
         
@@ -112,7 +112,7 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
                             
                             match_table = Table.from_pandas(match_table)
                             
-                            match_table = match_table[["_create_time", "fxt_name", "target_name", "detnam","ra","dec"]]
+                            match_table = match_table[["_create_time", "fxt_name", "target_name", "detnam","ra","dec","id"]]
                             
                             create_times = match_table["_create_time"].value
                             cts = [datetime.strptime(i, "%a, %d %b %Y %H:%M:%S %Z") for i in create_times]
@@ -149,7 +149,7 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         c_fxt = SkyCoord(table_filtered['ra'],table_filtered['dec'],unit=u.deg)
         c_o = SkyCoord(table_filtered[ra_col],table_filtered[dec_col],unit=u.deg)
         sep = c_fxt.separation(c_o)
-        table_filtered['seperation (arcsec)'] = sep.arcsec
+        table_filtered['separation (arcsec)'] = sep.arcsec
         df_filtered = table_filtered.to_pandas()
         
         try:  
@@ -160,7 +160,8 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         # ===== Step 6: Save merged table =====
         df_filtered = df_filtered.rename(columns={'_create_time':'fxt_create_time'})
         #df_filtered.to_csv(output_file, index=False)
-        return df_filtered
+        table_filtered = Table.from_pandas(df_filtered)
+        return table_filtered
     else:
         print('No matched sources')
         return Table()
