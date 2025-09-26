@@ -14,8 +14,6 @@ Welcome to SOCS-Xray documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   Installation
-
    quickstart
    example
 
