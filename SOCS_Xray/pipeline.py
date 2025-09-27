@@ -250,33 +250,33 @@ class Pipeline(object):
             
         #remove pre-exist
         if len(self.uniform_match) > 0:
-            self.uniform_match = setdiff(self.matched,self.uniform_match)
+            self.uniform_match = setdiff(self.uniform_match,self.matched)
+            if len(self.uniform_match) > 0:
+                if update_result:
+                    self.matched = unique(vstack((self.matched,self.uniform_match)))
+                    self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
+                            
+                    
+                t_end = time.time()
+                elapsed_time = t_end - t_start
             
-            if update_result:
-                self.matched = unique(vstack((self.matched,self.uniform_match)))
-                self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
-                        
-                
-            t_end = time.time()
-            elapsed_time = t_end - t_start
-        
-            df = self.uniform_match.to_pandas()
-            html_table = df.to_html(border=1,
-                            index=False,
-                            justify="center",
-                            col_space=80)
-            self.uniform_html = f"""
-                                    <html>
-                                    <body>
-                                        "<br>"{html_table}
-                                        <br>
-                                        <p>Matched with {len(self.TNS_table)} TNS sources, {self.ZTF_clean} ZTF sources. 
-                                        <p>Running time: {elapsed_time} seconds. 
-                                        <p>This is preliminary result from EP-OT searching. 
-                                        <p>Best regards,<br>Runduo</p>
-                                    </body>
-                                    </html>
-                                    """
+                df = self.uniform_match.to_pandas()
+                html_table = df.to_html(border=1,
+                                index=False,
+                                justify="center",
+                                col_space=80)
+                self.uniform_html = f"""
+                                        <html>
+                                        <body>
+                                            "<br>"{html_table}
+                                            <br>
+                                            <p>Matched with {len(self.TNS_table)} TNS sources, {len(self.ZTF_clean)} ZTF sources. 
+                                            <p>Running time: {elapsed_time:.2f} seconds. 
+                                            <p>This is preliminary result from EP-OT searching. 
+                                            <p>Best regards,<br>Runduo</p>
+                                        </body>
+                                        </html>
+                                        """
 
         
                 
