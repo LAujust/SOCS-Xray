@@ -44,6 +44,7 @@ class Pipeline(object):
         fxt_search_max [float]:   Maximum sources for fxt_serach(). If exceeded, pipeline will search sources with ndet > 1. Default 3000. 
         """
         
+        t_start = time.time()
         ndays = abs(dt[0])
         dt = abs(dt[1])
         
@@ -256,6 +257,9 @@ class Pipeline(object):
                 self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
                         
                 
+            t_end = time.time()
+            elapsed_time = t_end - t_start
+        
             df = self.uniform_match.to_pandas()
             html_table = df.to_html(border=1,
                             index=False,
@@ -266,6 +270,8 @@ class Pipeline(object):
                                     <body>
                                         "<br>"{html_table}
                                         <br>
+                                        <p>Matched with {len(self.TNS_table)} TNS sources, {self.ZTF_clean} ZTF sources. 
+                                        <p>Running time: {elapsed_time} seconds. 
                                         <p>This is preliminary result from EP-OT searching. 
                                         <p>Best regards,<br>Runduo</p>
                                     </body>
