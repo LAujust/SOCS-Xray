@@ -29,7 +29,7 @@ class Pipeline(object):
                 print('Starting with NULL dataset. ')
             else:
                 self.matched = Table.read(os.path.join(self.root,'matched.csv'),format='csv')
-                print('Matched table loaded. ')
+                print('Matched table loaded (%s rows)'%len(self.matched))
                 
                 
     def run(self,dt=[-5,30],show_progress=True,wxt_radii=3.5,fxt_radii=11,update_result=False,fxt_search_max=3000):
@@ -247,7 +247,9 @@ class Pipeline(object):
             step += 1
             print(pbar + '[%s]: Saving Results'%step + pbar)
             
+        #remove pre-exist
         if len(self.uniform_match) > 0:
+            self.uniform_match = setdiff(self.matched,self.uniform_match)
             
             if update_result:
                 self.matched = unique(vstack((self.matched,self.uniform_match)))
