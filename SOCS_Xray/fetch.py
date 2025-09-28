@@ -238,7 +238,7 @@ def search_TNS(user_id,user_name,url_parameters={"discovered_period_value" : "10
     TNS_UID              = user_id
     TNS_USER_NAME        = user_name
     USER_OR_BOT          = "user"
-    MERGE_TO_SINGLE_FILE  = "1"
+    MERGE_TO_SINGLE_FILE  = 1
 
     ext_http_errors       = [403, 500, 503]
     err_msg               = ["Forbidden", "Internal Server Error: Something is broken", "Service Unavailable"]
