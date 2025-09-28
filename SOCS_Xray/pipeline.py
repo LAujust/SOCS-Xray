@@ -367,10 +367,12 @@ class Pipeline(object):
             
         if alerce_table is None and lasair_table is not None:
             ZTF_clean = lasair_table['objectId','ramean','decmean','mjdmin','ndet','classification']
+            ZTF_clean['link'] = ['https://lasair-ztf.lsst.ac.uk/objects/%s'%id for id in ZTF_clean['objectId']]
             ZTF_clean.rename_columns(['objectId','ramean','decmean','mjdmin','classification'],
                                         ['oid','o_ra','o_dec','firstmjd','class'])
         elif alerce_table is not None and lasair_table is None:
             ZTF_clean = alerce_table['oid','meanra','meandec','probability','firstmjd','ndet','class_name']
+            ZTF_clean['link'] = ['https://alerce.online/object/%s'%id for id in ZTF_clean['oid']]
             ZTF_clean.rename_columns(['meanra','meandec','class_name'],['o_ra','o_dec','class'])
         elif alerce_table is None and lasair_table is None:
             raise KeyError('Fail on Alerce and Lasair')
