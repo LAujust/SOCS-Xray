@@ -349,7 +349,7 @@ class Pipeline(object):
         
     def update_ZTF(self,ndays=10):
         firstmjd_2 = self.tnow.mjd - ndays #at least 2 det
-        firstmjd_1 = self.tnow.mjd - 2 #only 1 det
+        firstmjd_1 = self.tnow.mjd - 3 #only 1 det
         
         lasair_table = alerce_table = None
         
@@ -361,6 +361,8 @@ class Pipeline(object):
         try:
             alerce_table_2 = get_Alerce(base_alerce_query(2,firstmjd_2))
             alerce_table_1 = get_Alerce(base_alerce_query(1,firstmjd_1))
+            for col in alerce_table_2.colnames:
+                alerce_table_1[col] = alerce_table_1[col].astype(alerce_table_2[col].dtype)
             alerce_table = vstack((alerce_table_2,alerce_table_1))
         except Exception as e:
             print('Fail on Alerce: %s'%e)
