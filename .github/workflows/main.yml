@@ -2,9 +2,9 @@ name: Daily Run
 
 on:
   schedule:
-    # 每天北京时间早上 8 点运行 (UTC 1 点)
+    # 每天北京时间早上 9 点运行 (UTC 1 点)
     - cron: "0 1 * * *"
-  workflow_dispatch:  # 允许你手动触发
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   run-example:
@@ -21,14 +21,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # === 还原前一天的 output ===
+      - name: Restore output cache
+        uses: actions/cache/restore@v4
+        with:
+          path: output
+          key: output-cache
+
+      # 确保 output 文件夹存在（第一次运行时可能没有）
       - name: Prepare output folder
         run: mkdir -p output
-
-      - name: Download yesterday output
-        uses: actions/download-artifact@v4
-        with:
-          name: output
-          path: output_prev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,15 +38,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Run script
-        run: |
-          python daily_update.py
+        run: python daily_update.py
 
-      - name: Save output
-        uses: actions/upload-artifact@v4
+      # === 保存当天的 output 覆盖旧缓存 ===
+      - name: Save output cache
+        if: always()   # 即使脚本报错也保存已有文件
+        uses: actions/cache/save@v4
         with:
-          name: example-output
-          path: output/   # 你脚本生成的目录或文件
+          path: output
+          key: output-cache
