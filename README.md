@@ -46,7 +46,7 @@ Here are the criteria for candidates evaluation,
 
 Or we can have a ranking statistic, i.e. the probability of X-ray emission and Optical transients share the same origin:
 
-$\mathcal{L} = (P_{\mathrm{X}} + P_{\mathrm{astro}})(1-P_{\mathrm{cc}})$
+$\mathcal{L} = (P_{\mathrm{X}} \times P_{\mathrm{astro}})(1-P_{\mathrm{cc}})$
 
 , where $P_{\mathrm{X}},P_{\mathrm{astro}}$ are the probability of 'real' source, and $P_{\mathrm{cc}}$ is the probability of chance coincidence, which can be estimated by simulation or statistics on data.
 
