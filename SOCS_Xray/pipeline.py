@@ -32,7 +32,7 @@ class Pipeline(object):
                 print('Matched table loaded (%s rows)'%len(self.matched))
                 
                 
-    def run(self,dt=[-5,30],show_progress=True,wxt_radii=3.5,fxt_radii=11,update_result=False,fxt_search_max=3000):
+    def run(self,dt=[-5,30],show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False,fxt_search_max=3000):
         
         """
         dt [list,numpy.array]: time offset between x-ray observation time and optical discovery date. Default [-5,30];
@@ -144,7 +144,7 @@ class Pipeline(object):
             step += 1
             print(pbar + '[%s]: Processing FXT-TNS'%step + pbar)
             
-        self.fxt_tns_match = search_fxt_from_table(self.TNS_table[:100],email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
+        self.fxt_tns_match = search_fxt_from_table(self.TNS_table,email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
         if len(self.fxt_tns_match) > 0:
             self.fxt_tns_match = self.fxt_tns_match[(self.fxt_tns_match['dt']<dt) & (self.fxt_tns_match['dt']>-dt)]
             
@@ -311,7 +311,7 @@ class Pipeline(object):
         
         return obs_time
     
-    def update_TNS(self,ndays=2):
+    def update_TNS(self,ndays=5):
         # if os.path.exists(os.path.join(self.root,'tns_public_objects.csv')):   
         #     old = Table.read(os.path.join(self.root,'tns_public_objects.csv'),format='csv')
         #     new = get_TNS(save_dir=self.root)
