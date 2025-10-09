@@ -95,7 +95,7 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
     data = {'api_key': API_KEY}
     
     url = BASE_URL + filename
-    response = requests.post(url, headers=headers, data=data, stream=True)
+    response = requests.post(url, headers=headers, data=data, timeout=180, stream=True)
 
     if response.status_code == 200:
         with open(os.path.join(save_dir,filename), 'wb') as file:
