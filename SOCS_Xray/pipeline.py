@@ -250,7 +250,7 @@ class Pipeline(object):
             
         #remove pre-exist
         if len(self.uniform_match) > 0:
-            self.uniform_match = setdiff(self.uniform_match,self.matched)
+            self.uniform_match = setdiff(self.uniform_match,self.matched,keys=['ep_name','oid','ep_link'])
             if len(self.uniform_match) > 0:
                 if update_result:
                     self.matched = unique(vstack((self.matched,self.uniform_match)))
