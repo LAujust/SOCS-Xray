@@ -98,6 +98,6 @@ def ztf_irsa_lc(ra, dec, band:str, match_rad:float=5, mjd_min=None, mjd_max=None
 def alerce_lc(oid):
     
     alerce = Alerce()
-    det = alerce.query_detections(oid='ZTF25acalcyq',format='votable')
-    force = alerce.query_forced_photometry(oid='ZTF25acalcyq',format='pandas')
+    det = alerce.query_detections(oid=oid,format='votable')
+    force = alerce.query_forced_photometry(oid=oid,format='pandas')
     return det, force
