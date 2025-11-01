@@ -101,3 +101,6 @@ def alerce_lc(oid):
     det = alerce.query_detections(oid=oid,format='votable')
     force = alerce.query_forced_photometry(oid=oid,format='pandas')
     return det, force
+
+def WXT_lc(ra,dec,mjd_min,mjd_max):
+    pass
