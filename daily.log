@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/liangrunduo/Desktop/Aujust/NAOC/EP/Projects/SOCS-Xray/daily_update.py", line 8, in <module>
+    tdic_email = os.environ["TDIC_EMAIL"]
+                 ~~~~~~~~~~^^^^^^^^^^^^^^
+  File "<frozen os>", line 679, in __getitem__
+KeyError: 'TDIC_EMAIL'

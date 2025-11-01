@@ -5,3 +5,4 @@ from .fetch import *
 from .search import *
 from .pipeline import *
 from .mail import *
+from .lightcurve import *
