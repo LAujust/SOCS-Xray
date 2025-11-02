@@ -258,7 +258,7 @@ class Pipeline(object):
                             
                     
                 t_end = time.time()
-                elapsed_time = t_end - t_start
+                self.elapsed_time = t_end - t_start
             
                 df = self.uniform_match.to_pandas()
                 html_table = df.to_html(border=1,
@@ -271,7 +271,7 @@ class Pipeline(object):
                                             "<br>"{html_table}
                                             <br>
                                             <p>Matched with {len(self.TNS_table)} TNS sources, {len(self.ZTF_clean)} ZTF sources. 
-                                            <p>Running time: {elapsed_time:.2f} seconds. 
+                                            <p>Running time: {self.elapsed_time:.2f} seconds. 
                                             <p>This is preliminary result from EP-OT searching. 
                                             <p>Best regards,<br>Runduo</p>
                                         </body>
