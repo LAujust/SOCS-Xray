@@ -7,7 +7,7 @@ import astropy.units as u
 import astropy.constants as c
 from astropy.coordinates import SkyCoord
 import requests
-import sys, os
+import sys, os, re
 import subprocess
 import math
 import yaml

@@ -5,6 +5,9 @@ from lasair import LasairError, lasair_client as lasair
 import json
 import time
 import datetime
+from pathlib import Path
+from typing import Optional
+from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
 
 
@@ -428,3 +431,221 @@ URL_PARAMETERS       = ["discovered_period_value", "discovered_period_units", "u
                         "frb_repeat", "frb_repeater_of_objid", "frb_measured_redshift", "frb_dm_range_min", "frb_dm_range_max",
                         "frb_rm_range_min", "frb_rm_range_max", "frb_snr_range_min", "frb_snr_range_max", "frb_flux_range_min",
                         "frb_flux_range_max", "format", "num_page"]
+
+
+
+
+
+def download_ep_data(username: str,
+                     password: str,
+                     ra: float,
+                     dec: float,
+                     start_time: str,
+                     end_time: str,
+                     destination_path: str,
+                     radius: float = 0.01,
+                     headless: bool = True,
+                     instrument: str = 'FXT',
+                     state_path: str = "ep_oauth_state.json"):
+    """
+    Download Einstein Probe FXT observation data for given coordinates and time range.
+
+    Parameters
+    ----------
+    username : str
+        EP account username.
+    password : str
+        EP account password.
+    ra : float
+        Target right ascension (deg).
+    dec : float
+        Target declination (deg).
+    start_time : str
+        Start time in "YYYY-MM-DD HH:MM:SS" format.
+    end_time : str
+        End time in "YYYY-MM-DD HH:MM:SS" format.
+    destination_path : str
+        Directory where data will be saved.
+    radius : str, optional
+        Search radius in degrees. Default = 0.01.
+    headless : bool, optional
+        Run browser in headless mode (default True).
+    state_path : str, optional
+        Path to save the Playwright state for login persistence.
+    """
+
+    # ====== internal constants ======
+    PROTECTED_URL = "https://ep.bao.ac.cn/ep/data_center/fxt_obs/"
+    if instrument == 'WXT':
+        API_URL = 'https://ep.bao.ac.cn/ep/data_center/wxt_observation_data/api'
+    elif instrument == 'FXT':
+        API_URL = "https://ep.bao.ac.cn/ep/data_center/fxt_obs/api/"
+    else:
+        raise ValueError('Input valid instrument!')
+    
+    PER_PAGE_TIMEOUT = 5 * 60 * 1000
+    ASYNC_MAX_WAIT = 10 * 60
+    RETRY_TIMES = 2
+
+    destination_path = Path(destination_path)
+    destination_path.mkdir(parents=True, exist_ok=True)
+
+    # ====== internal helper functions ======
+    def _mkrow_dir(destination_path: Path, obs_id: str, detnam: str, version: str) -> Path:
+        d = destination_path / f"{obs_id}_{detnam}_{version}"
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    def _wait_async_link(page) -> Optional[str]:
+        page.get_by_role("button", name="Download User data").click()
+        page.wait_for_selector("#async-download-status", state="visible", timeout=30_000)
+        t0 = time.time()
+        while time.time() - t0 < ASYNC_MAX_WAIT:
+            try:
+                page.wait_for_function(
+                    """() => {
+                        const box = document.querySelector('#async-download-link');
+                        const a = box ? box.querySelector('a') : null;
+                        return box && getComputedStyle(box).display !== 'none' && a && a.href;
+                    }""",
+                    timeout=5_000
+                )
+                href = page.eval_on_selector("#async-download-link a", "el => el.href")
+                return href
+            except PWTimeout:
+                continue
+        return None
+
+    def _download_user_zip(page, out_dir: Path, obs_id: str, detnam: str, version: str) -> Path:
+        target = out_dir / f"{obs_id}_{detnam}_{version}_user.zip"
+        if target.exists():
+            print(f"  [skip] user zip exists: {target.name}")
+            return target
+        href = _wait_async_link(page)
+        if not href:
+            raise RuntimeError("Async user-data link did not appear within time limit.")
+        with page.expect_download(timeout=PER_PAGE_TIMEOUT) as dl_info:
+            page.click("#async-download-link a")
+        dl = dl_info.value
+        dl.save_as(target.as_posix())
+        print(f"  [ok] user zip -> {target.name}")
+        return target
+
+    def _download_sources_csv(page, out_dir: Path, obs_id: str, detnam: str, version: str) -> Path:
+        target = out_dir / f"{obs_id}_{detnam}_{version}_sources.csv"
+        if target.exists():
+            print(f"  [skip] sources csv exists: {target.name}")
+            return target
+        page.wait_for_selector("#download_src", timeout=30_000)
+        with page.expect_download(timeout=PER_PAGE_TIMEOUT) as dl_info:
+            page.click("#download_src")
+        dl = dl_info.value
+        dl.save_as(target.as_posix())
+        print(f"  [ok] sources csv -> {target.name}")
+        return target
+
+    def _process_one_row(page, row: pd.Series, destination_path: Path):
+        obs_id = str(row["obs_id"]).strip()
+        detnam = str(row["detnam"]).strip()
+        version = str(row.get("version", "02")).strip()
+        url = f"https://ep.bao.ac.cn/ep/data_center/fxt_obs_detail/{obs_id}/{detnam}/{version}"
+        print(f"\n==> {obs_id} {detnam} {version}")
+        page.goto(url, wait_until="domcontentloaded", timeout=PER_PAGE_TIMEOUT)
+        page.wait_for_selector("text=Get Data Files", timeout=30_000)
+        page.wait_for_selector("text=Sources in the observation", timeout=30_000)
+        out_dir = _mkrow_dir(destination_path, obs_id, detnam, version)
+        try:
+            _download_user_zip(page, out_dir, obs_id, detnam, version)
+        except Exception as e:
+            print(f"  [warn] user zip failed: {e}")
+        try:
+            _download_sources_csv(page, out_dir, obs_id, detnam, version)
+        except Exception as e:
+            print(f"  [warn] sources csv failed: {e}")
+
+    def _run_batch(df: pd.DataFrame, destination_path: Path):
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=headless)
+            ctx = browser.new_context(storage_state=state_path, accept_downloads=True)
+            page = ctx.new_page()
+            for i, row in df.iterrows():
+                for attempt in range(1, RETRY_TIMES + 2):
+                    try:
+                        _process_one_row(page, row, destination_path)
+                        break
+                    except Exception as e:
+                        print(f"  [err] row {i} attempt {attempt} failed: {e}")
+                        if attempt <= RETRY_TIMES:
+                            time.sleep(3)
+                        else:
+                            print("  [give up] move on.")
+            browser.close()
+
+    def _login(username, password):
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=headless)
+            ctx = browser.new_context()
+            page = ctx.new_page()
+            page.goto(PROTECTED_URL, wait_until="domcontentloaded")
+            if "oauth.china-vo.org" not in page.url:
+                ctx.storage_state(path=state_path)
+                cookies = ctx.cookies()
+                browser.close()
+                s = requests.Session()
+                for c in cookies:
+                    s.cookies.set(c["name"], c["value"], domain=c.get("domain"), path=c.get("path", "/"))
+                return s
+            page.wait_for_selector('input[name="username"]', timeout=60_000)
+            page.fill('input[name="username"]', username)
+            page.fill('input[name="password"]', password)
+            if page.is_visible('input[name="captcha"]'):
+                page.screenshot(path="login_need_captcha.png")
+                code = input("验证码出现，请查看 login_need_captcha.png 并输入: ").strip()
+                page.fill('input[name="captcha"]', code)
+            page.get_by_role("button", name=re.compile("login", re.I)).click()
+            try:
+                page.wait_for_url(re.compile(r"^https://ep\.bao\.ac\.cn/.*"), timeout=60_000)
+            except PWTimeout:
+                page.wait_for_selector('a[href="/ep/user/logout"], img.avatar-xs, text=My Home',
+                                       timeout=60_000)
+            ctx.storage_state(path=state_path)
+            cookies = ctx.cookies()
+            browser.close()
+        s = requests.Session()
+        for c in cookies:
+            s.cookies.set(c["name"], c["value"], domain=c.get("domain"), path=c.get("path", "/"))
+        return s
+
+    # ====== main logic ======
+    session = _login(username, password)
+    params = {
+        "obs_id": "",
+        "start_datetime": start_time,
+        "end_datetime": end_time,
+        "ra": ra,
+        "dec": dec,
+        "radius": str(radius),
+    }
+    response = session.post(API_URL, data=params)
+    response.raise_for_status()
+    data = response.json()
+    df = pd.DataFrame(data)
+    if not df.empty:
+        df = df.sort_values(["obs_start", "detnam"], ascending=[True, True]).reset_index(drop=True)
+        df.to_csv(destination_path / "fxt_obs_list.csv", index=False, encoding="utf-8-sig")
+        _run_batch(df, destination_path)
+        print("✅ All downloads completed.")
+    else:
+        print("⚠️ No matching observations found.")
+
+
+# Example:
+# download_ep_data(
+#     username="aujust",
+#     password="Liang@981127",
+#     ra=75.3897,
+#     dec=-47.0878,
+#     start_time="2025-09-27 00:00:00",
+#     end_time="2025-10-02 00:00:00",
+#     destination_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/fxtl1"
+# )
