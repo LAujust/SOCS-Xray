@@ -277,6 +277,10 @@ class Pipeline(object):
                                         </body>
                                         </html>
                                         """
+                                        
+        else:
+            t_end = time.time()
+            self.elapsed_time = t_end - t_start
 
         
                 
