@@ -8,6 +8,7 @@ import datetime
 from pathlib import Path
 from typing import Optional
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+import pexpect
 
 
 
@@ -436,7 +437,7 @@ URL_PARAMETERS       = ["discovered_period_value", "discovered_period_units", "u
 
 
 
-def download_ep_data(username: str,
+def download_fxt_data(username: str,
                      password: str,
                      ra: float,
                      dec: float,
@@ -445,7 +446,6 @@ def download_ep_data(username: str,
                      destination_path: str,
                      radius: float = 0.01,
                      headless: bool = True,
-                     instrument: str = 'FXT',
                      state_path: str = "ep_oauth_state.json"):
     """
     Download Einstein Probe FXT observation data for given coordinates and time range.
@@ -476,12 +476,7 @@ def download_ep_data(username: str,
 
     # ====== internal constants ======
     PROTECTED_URL = "https://ep.bao.ac.cn/ep/data_center/fxt_obs/"
-    if instrument == 'WXT':
-        API_URL = 'https://ep.bao.ac.cn/ep/data_center/wxt_observation_data/api'
-    elif instrument == 'FXT':
-        API_URL = "https://ep.bao.ac.cn/ep/data_center/fxt_obs/api/"
-    else:
-        raise ValueError('Input valid instrument!')
+    API_URL = "https://ep.bao.ac.cn/ep/data_center/fxt_obs/api/"
     
     PER_PAGE_TIMEOUT = 5 * 60 * 1000
     ASYNC_MAX_WAIT = 10 * 60
@@ -639,13 +634,72 @@ def download_ep_data(username: str,
         print("⚠️ No matching observations found.")
 
 
-# Example:
-# download_ep_data(
-#     username="aujust",
-#     password="Liang@981127",
-#     ra=75.3897,
-#     dec=-47.0878,
-#     start_time="2025-09-27 00:00:00",
-#     end_time="2025-10-02 00:00:00",
-#     destination_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/fxtl1"
-# )
+import pexpect
+
+def download_wxt_data(username:str, password:str, remote_path:str, local_path:str, start_time:str, end_time:str, ra:float, dec:float, radius:float=0.05, host='101.201.57.201'):
+    """
+    ra : float
+        Target right ascension (deg).
+    dec : float
+        Target declination (deg).
+    start_time : str
+        Start time in "YYYY-MM-DD HH:MM:SS" format.
+    end_time : str
+        End time in "YYYY-MM-DD HH:MM:SS" format.
+    radius : str, optional
+        Search radius in degrees. Default = 0.01.
+    Download a file from remote SSH server using scp (password required).
+    """
+    def _scp_download(username,password,remote_path,local_path):
+        src = f"{username}@{host}:{remote_path}"
+        cmd = f"scp {src} {local_path}"
+        print(f"⬇️ Running: {cmd}")
+
+        child = pexpect.spawn(cmd, encoding='utf-8', timeout=120)
+        i = child.expect(['password:', 'continue connecting (yes/no)?', pexpect.EOF, pexpect.TIMEOUT])
+
+        if i == 1:
+            # First-time connection confirmation
+            child.sendline('yes')
+            child.expect('password:')
+            child.sendline(password)
+        elif i == 0:
+            # Password prompt
+            child.sendline(password)
+
+        child.expect(pexpect.EOF)
+        print("✅ File downloaded successfully!")
+    
+    #Request Obs ID Data
+    url = "https://ep.bao.ac.cn/ep/data_center/api/wxt_observation_data/"
+    data = {
+        "ra": ra,
+        "dec": dec,
+        "radius": radius,
+        "start_datetime": start_time,
+        "end_datetime": end_time
+    }
+    response = requests.post(url, data=data)
+    if response.status_code == 200:
+        data = response.json()
+    else:
+        raise ValueError('Status code%s'%response.status_code)
+    
+    
+    #SCP from server
+    for i in range(len(data)):
+        info = data[i]
+        obsid = info['obs_id']
+        cmosid = info['detnam'][4:]
+        # print((data[i]['pnt_ra'],data[i]['pnt_dec']))
+        local_path_i = os.path.join(local_path,obsid)
+        if not os.path.exists(local_path_i):
+            os.mkdir(local_path_i)
+        clevtfile = '/mnt/epdata_pipeline/L23/obs/%s/ep%swxt%spo_cl.evt'%(obsid,obsid,cmosid)
+        # arffile = '/mnt/epdata_pipeline/L23/obs/%s/ep%swxt%spo_uf.evt'%(obsid,obsid,cmosid)
+        rmffile = '/mnt/wxt_fm_caldb/caldb/data/ep/wxt/cpf/rmf/epw%s_0to12_20231230v001.rmf'%cmosid
+        arffile = '/mnt/epdata_pipeline/L23/obs/%s/ep%swxt%ss1.arf'%(obsid,obsid,cmosid) #default using s1 for approximation
+        _scp_download(username,password,local_path=local_path_i,remote_path=clevtfile)
+        _scp_download(username,password,local_path=local_path_i,remote_path=arffile)
+        _scp_download(username,password,local_path=local_path_i,remote_path=rmffile)
+    

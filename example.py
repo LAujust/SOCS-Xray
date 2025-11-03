@@ -23,12 +23,19 @@ mjdfirst = tnow.mjd - 1
 #pipe.tns_match.pprint()
 #pipe.ztf_match.pprint()
 
-SOCS_Xray.download_ep_data(username="aujust",
-    password="Liang@981127",
-    ra=75.3897,
-    dec=-47.0878,
-    start_time="2025-09-27 00:00:00",
-    end_time="2025-10-01 00:00:00",
-    destination_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/test",
-    instrument='FXT'
+# SOCS_Xray.download_ep_data(username="aujust",
+#     password="Liang@981127",
+#     ra=75.3897,
+#     dec=-47.0878,
+#     start_time="2025-09-27 00:00:00",
+#     end_time="2025-10-01 00:00:00",
+#     destination_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/test",
+#     instrument='WXT'
+# )
+
+SOCS_Xray.download_wxt_data(
+    username="rdliang",
+    password="liangrunduo",
+    remote_path="/mnt/epdata_pipeline/L23/obs/11900076167/ep11900076167wxt24po_cl.evt ",
+    local_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/test"
 )
