@@ -30,6 +30,5 @@ For WXT Data, we retrieve from EP Data Server. Therefore, your account and passw
         dec=-47.0878,
         start_time="2025-09-27 00:00:00",
         end_time="2025-10-01 00:00:00",
-        remote_path="/mnt/epdata_pipeline/L23/obs/11900076167/ep11900076167wxt24po_cl.evt ",
         local_path="/path/to/your/workspace"
     )
