@@ -6,6 +6,8 @@ This is an example code for use.
 Basic Pipeline
 -------------------
 
+All function for searching can be utilized by running ``Pipeline()``, and your account and password to access EP TDIC are required. 
+
 .. code-block:: python
 
     import SOCS_Xray
@@ -13,7 +15,7 @@ Basic Pipeline
     from astropy.time import Time
 
 
-    pipe = SOCS_Xray.Pipeline(email='youraccount',
+    pipe = SOCS_Xray.Pipeline(email='account',
                               password='password',
                               root='/path/to/your/workspace')
 
@@ -21,36 +23,5 @@ Basic Pipeline
     pipe.tns_match.pprint()
     pipe.ztf_match.pprint()
 
-Download EP data
-----------------------
-
-You also can search and download WXT and FXT data through SOCS!
-
-For FXT Data, you EP TDIC account and password are required.
-
-.. code-block:: python
-
-    SOCS_Xray.download_fxt_data(username="account",
-         password="password",
-         ra=75.3897,
-         dec=-47.0878,
-         start_time="2025-09-27 00:00:00",
-         end_time="2025-10-01 00:00:00",
-         destination_path="/path/to/your/workspace"
-     )
-
-For WXT Data, we retrieve from EP Data Server. Therefore, your account and password to access the server are required (and this is different from your TDIC Account!).
-
-.. code-block:: python
-
-    SOCS_Xray.download_wxt_data(
-        username="usrname",
-        password="password",
-        ra=75.3897,
-        dec=-47.0878,
-        start_time="2025-09-27 00:00:00",
-        end_time="2025-10-01 00:00:00",
-        remote_path="/mnt/epdata_pipeline/L23/obs/11900076167/ep11900076167wxt24po_cl.evt ",
-        local_path="/path/to/your/workspace"
-    )
+The ``Pipeline()`` will store result in ``matched.csv``, and it will check whether this file is exsist. If so, it will use it as previous matched candidates. Otherwise, it will create a empty one. 
 
