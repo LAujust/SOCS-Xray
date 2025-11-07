@@ -636,7 +636,7 @@ def download_fxt_data(username: str,
 
 import pexpect
 
-def download_wxt_data(username:str, password:str, remote_path:str, local_path:str, start_time:str, end_time:str, ra:float, dec:float, radius:float=0.05, host='101.201.57.201'):
+def download_wxt_data(username:str, password:str, local_path:str, start_time:str, end_time:str, ra:float, dec:float, radius:float=0.05, host='101.201.57.201'):
     """
     ra : float
         Target right ascension (deg).

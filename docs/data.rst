@@ -1,25 +1,5 @@
-Example Usage
-=====================
-
-This is an example code for use. 
-
-Basic Pipeline
--------------------
-
-.. code-block:: python
-
-    import SOCS_Xray
-    from astropy.table import Table
-    from astropy.time import Time
-
-
-    pipe = SOCS_Xray.Pipeline(email='youraccount',
-                              password='password',
-                              root='/path/to/your/workspace')
-
-    pipe.run()
-    pipe.tns_match.pprint()
-    pipe.ztf_match.pprint()
+Fetch Data
+===================
 
 Download EP data
 ----------------------
@@ -53,4 +33,3 @@ For WXT Data, we retrieve from EP Data Server. Therefore, your account and passw
         remote_path="/mnt/epdata_pipeline/L23/obs/11900076167/ep11900076167wxt24po_cl.evt ",
         local_path="/path/to/your/workspace"
     )
-

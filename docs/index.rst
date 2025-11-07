@@ -16,4 +16,5 @@ Welcome to SOCS-Xray documentation!
 
    quickstart
    example
+   data
 
