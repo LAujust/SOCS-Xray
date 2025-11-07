@@ -4,7 +4,7 @@ Fetch Data
 Download EP data
 ----------------------
 
-You also can search and download WXT and FXT data through SOCS!
+Sometimes you need long term EP data or some level 1 or 2-3 data for identification. Here er provide a tool for retrieving these data. 
 
 For FXT Data, you EP TDIC account and password are required.
 
