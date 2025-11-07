@@ -33,9 +33,8 @@ mjdfirst = tnow.mjd - 1
 #     instrument='WXT'
 # )
 
-SOCS_Xray.download_wxt_data(
-    username="rdliang",
-    password="liangrunduo",
-    remote_path="/mnt/epdata_pipeline/L23/obs/11900076167/ep11900076167wxt24po_cl.evt ",
-    local_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/test"
-)
+# SOCS_Xray.download_wxt_data(
+#     username="usrname",
+#     password="password",
+#     local_path="/Volumes/T7/Shared_Files/EP/Results/SBO/data/AT2025zby/test"
+# )
