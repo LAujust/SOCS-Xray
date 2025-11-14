@@ -1,7 +1,7 @@
-socsxray.fetch
+SOCS_Xray.fetch
 =============
 
-.. automodule:: socsxray.core
+.. automodule:: SOCS_Xray.fetch
     :members:
     :undoc-members:
     :show-inheritance:

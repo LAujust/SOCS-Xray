@@ -1,7 +1,7 @@
-socsxray.utils
+SOCS_Xray.utils
 =============
 
-.. automodule:: socsxray.core
+.. automodule:: SOCS_Xray.utils
     :members:
     :undoc-members:
     :show-inheritance:

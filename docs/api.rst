@@ -9,6 +9,6 @@ the SOCS-Xray package. Each module is documented using Sphinx's
    :maxdepth: 2
    :caption: Modules
 
-   socs_xray.utils
-   socs_xray.pipeline
-   socs_xray.fetch
+   SOCS_Xray.utils
+   SOCS_Xray.pipeline
+   SOCS_Xray.fetch

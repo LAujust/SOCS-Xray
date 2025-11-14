@@ -1,7 +1,7 @@
-socsxray.pipeline
+SOCS_Xray.pipeline
 =============
 
-.. automodule:: socsxray.core
+.. automodule:: SOCS_Xray.pipeline
     :members:
     :undoc-members:
     :show-inheritance:
