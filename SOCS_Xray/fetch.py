@@ -13,6 +13,16 @@ import pexpect
 
 
 def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
+    """Download WXT source list.
+
+    Args:
+        EMAIL (str): user email
+        PASSWORD (str): password
+        save_dir (str, optional): Saving path. Defaults to None.
+
+    Returns:
+        Table: A Table of all sources detected by EP
+    """
 
     #Initialization
     url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
@@ -81,6 +91,16 @@ def update_WXT_source_list(EMAIL,PASSWORD,save_dir=None):
     return table
 
 def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
+    """
+    Download TNS object list.
+    
+    Args:
+    filename (str): saved filename
+    save_dir (str): saving path.
+    
+    Returns:
+    Table: Table of TNS public objects.
+    """
     
     API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
     BOT_ID = '164028'
@@ -122,6 +142,14 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
 
 
 def get_Alerce(query):
+    """_summary_
+
+    Args:
+        query (str): Alerce query
+
+    Returns:
+        Table: Table of filtered alerts
+    """
 
     url = "https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"
     params = requests.get(url).json()['params']
@@ -133,6 +161,14 @@ def get_Alerce(query):
 
 
 def get_Lasair(ndays):
+    """_summary_
+
+    Args:
+        ndays (int): How many days to look back.
+
+    Returns:
+        Table: Table of filtered alerts
+    """
     
     sys.path.append('API_ztf')
     endpoint = "https://lasair-ztf.lsst.ac.uk/api"
@@ -173,6 +209,17 @@ def get_Lasair(ndays):
 
 
 def request_obs_time(EMAIL,PASSWORD,ids):
+    """
+    
+
+    Args:
+        EMAIL (str): user email
+        PASSWORD (str): password
+        ids (list): source ids
+
+    Returns:
+        list: list observation time
+    """
     EMAIL = "liangrd@bao.ac.cn" # your login email in EP TDAIC
     PASSWORD = "Liang981127"
     url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
@@ -206,6 +253,18 @@ def request_obs_time(EMAIL,PASSWORD,ids):
 
 
 def base_alerce_query(ndet,mjdfirst,types=["SN", "AGN"],classifier='stamp_classifier'):
+    """_summary_
+
+    Args:
+        ndet (float): number of detections
+        mjdfirst (float): first detection MJD
+        types (list, optional): Classification. Defaults to ["SN", "AGN"].
+        classifier (str, optional): Classifier name. Defaults to 'stamp_classifier'.
+
+    Returns:
+        str: Alerce query
+    """
+    
     if ndet == 1:
         ndet = '<2'
     else:
@@ -237,6 +296,18 @@ def base_alerce_query(ndet,mjdfirst,types=["SN", "AGN"],classifier='stamp_classi
 
 def search_TNS(user_id,user_name,url_parameters={"discovered_period_value" : "10", "discovered_period_units" : "days", 
                         "format" : "csv", "num_page" : "200",},save_dir='./'):
+    """_summary_
+
+    Args:
+        user_id (str): ID
+        user_name (str): Usr Name
+        url_parameters (dict, optional): url parameters. Defaults to {"discovered_period_value" : "10", "discovered_period_units" : "days", "format" : "csv", "num_page" : "200",}.
+        save_dir (str, optional): saving path. Defaults to './'.
+
+    Returns:
+        Table: Table of filtered TNS objects
+    """
+    
     TNS                  = "www.wis-tns.org"
     url_tns_search       = "https://" + TNS + "/search"
     TNS_UID              = user_id
@@ -637,19 +708,20 @@ def download_fxt_data(username: str,
 import pexpect
 
 def download_wxt_data(username:str, password:str, local_path:str, start_time:str, end_time:str, ra:float, dec:float, radius:float=0.05, host='101.201.57.201'):
+    """Download WXT level 2-3 data.
+
+    Args:
+        username (str): user name
+        password (str): pasword
+        local_path (str): local path to store data
+        start_time (str): start observation time for searching
+        end_time (str): end observation time for searching
+        ra (float): RA in degree
+        dec (float): Dec in degree
+        radius (float, optional): cone searhing radius in degree. Defaults to 0.05.
+        host (str, optional): host ip. Defaults to '101.201.57.201'.
     """
-    ra : float
-        Target right ascension (deg).
-    dec : float
-        Target declination (deg).
-    start_time : str
-        Start time in "YYYY-MM-DD HH:MM:SS" format.
-    end_time : str
-        End time in "YYYY-MM-DD HH:MM:SS" format.
-    radius : str, optional
-        Search radius in degrees. Default = 0.01.
-    Download a file from remote SSH server using scp (password required).
-    """
+    
     def _scp_download(username,password,remote_path,local_path):
         src = f"{username}@{host}:{remote_path}"
         cmd = f"scp {src} {local_path}"
