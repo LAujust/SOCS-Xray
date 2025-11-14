@@ -13,7 +13,7 @@ Installation
 
     git clone https://github.com/LAujust/SOCS-Xray.git
 
-    cd EPTools/
+    cd SOCS-Xray/
 
     pip install .
 
@@ -21,5 +21,5 @@ Installation
 
 .. code-block:: bash
 
-    pip install mypackage
+    pip install socs_xray
 
