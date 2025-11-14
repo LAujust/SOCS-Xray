@@ -2,8 +2,13 @@ sphinx
 sphinx-rtd-theme
 sphinx-tabs
 numpy
-pandas
-astropy
-requests
-tqdm
-PyYAML
+astropy>=6.1.1
+scipy>=1.14.1
+pandas>=2.2.3
+pyyaml>=6.0.2
+requests >= 2.30.0
+tqdm >= 4.60.0
+alerce >= 1.4.0
+lasair >= 0.1.1
+sqlalchemy >= 2.0.43
+psycopg2-binary >= 2.9.10
