@@ -32,18 +32,18 @@ class Pipeline(object):
                 print('Matched table loaded (%s rows)'%len(self.matched))
                 
                 
-    def run(self,dt=[-5,30],show_progress=True,wxt_radii=3.5,fxt_radii=20,update_result=False,fxt_search_max=3000):
-        
-        """
-        dt [list,numpy.array]: time offset between x-ray observation time and optical discovery date. Default [-5,30];
-        ndays [float]: days back for retrieving history data. Default 5;
-        show_progress [bool]: Default True;
-        wxt_radii [float]: wxt searching radii in arcmin. Default 3.5;
-        fxt_radii [float]: fxt searching radii in arcsec. Default 20; 
-        update_result [bool]: Update new result to matched.csv. Default False; 
-        fxt_search_max [float]:   Maximum sources for fxt_serach(). If exceeded, pipeline will search sources with ndet > 1. Default 3000. 
-        """
-        
+    def run(self,dt=[-5,30],show_progress=True,wxt_radii:float=3.5,fxt_radii:float=20,update_result=False,fxt_search_max:float=3000):
+        """Run pipeline! The pipeline will performing cross-matching with TNS and ZTF based on your tme window. And it will store the result in self.uniform_match; and automatically parse email content in self.uniform_html. 
+
+        Args:
+            dt (list, optional): time offset threshold. Defaults to [-5,30].
+            show_progress (bool, optional): Whether to show progress. Defaults to True.
+            wxt_radii (float, optional): Searching radius for WXT sources (in arcmin). Defaults to 3.5.
+            fxt_radii (float, optional): Searching radius for WXT sources (in arcsec). Defaults to 20.
+            update_result (bool, optional): Whether to merge new identified candidates to previous result. Defaults to False.
+            fxt_search_max (float, optional): Maximum cross-matched FXT sources. Defaults to 3000.
+        """  
+                   
         t_start = time.time()
         ndays = abs(dt[0])
         dt = abs(dt[1])
