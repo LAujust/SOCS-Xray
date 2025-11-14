@@ -6,8 +6,11 @@ the SOCS-Xray package. Each module is documented using Sphinx's
 ``automodule`` directive and includes all classes and functions.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Modules
+   :maxdepth: 4
 
-   SOCS_Xray.pipeline
-   SOCS_Xray.fetch
+
+.. automodule:: SOCS_Xray
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
