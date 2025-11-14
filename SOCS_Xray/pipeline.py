@@ -255,10 +255,6 @@ class Pipeline(object):
                 if update_result:
                     self.matched = unique(vstack((self.matched,self.uniform_match)))
                     self.matched.write(os.path.join(self.root,'matched.csv'),format='csv',overwrite=True)                                    
-                            
-                    
-                t_end = time.time()
-                self.elapsed_time = t_end - t_start
             
                 df = self.uniform_match.to_pandas()
                 html_table = df.to_html(border=1,
@@ -278,9 +274,8 @@ class Pipeline(object):
                                         </html>
                                         """
                                         
-        else:
-            t_end = time.time()
-            self.elapsed_time = t_end - t_start
+        t_end = time.time()
+        self.elapsed_time = t_end - t_start
 
         
                 
