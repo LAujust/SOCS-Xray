@@ -15,7 +15,7 @@ API Reference
    :undoc-members:
    :show-inheritance:
 
-   .. automodule:: SOCS_Xray.mail
+.. automodule:: SOCS_Xray.mail
    :members:
    :undoc-members:
    :show-inheritance:

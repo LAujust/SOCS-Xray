@@ -65,6 +65,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#SOCS_Xray.fetch.request_obs_time"><code class="docutils literal notranslate"><span class="pre">request_obs_time()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#SOCS_Xray.fetch.search_TNS"><code class="docutils literal notranslate"><span class="pre">search_TNS()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#SOCS_Xray.fetch.update_WXT_source_list"><code class="docutils literal notranslate"><span class="pre">update_WXT_source_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#SOCS_Xray.mail.send_email"><code class="docutils literal notranslate"><span class="pre">send_email()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -119,14 +120,20 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="SOCS_Xray.pipeline.Pipeline.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-5,</span> <span class="pre">30]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wxt_radii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fxt_radii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fxt_search_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SOCS_Xray/pipeline.html#Pipeline.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SOCS_Xray.pipeline.Pipeline.run" title="Link to this definition"></a></dt>
-<dd><p>dt [list,numpy.array]: time offset between x-ray observation time and optical discovery date. Default [-5,30];
-ndays [float]: days back for retrieving history data. Default 5;
-show_progress [bool]: Default True;
-wxt_radii [float]: wxt searching radii in arcmin. Default 3.5;
-fxt_radii [float]: fxt searching radii in arcsec. Default 20;
-update_result [bool]: Update new result to matched.csv. Default False;
-fxt_search_max [float]:   Maximum sources for fxt_serach(). If exceeded, pipeline will search sources with ndet &gt; 1. Default 3000.</p>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-5,</span> <span class="pre">30]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wxt_radii</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fxt_radii</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fxt_search_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SOCS_Xray/pipeline.html#Pipeline.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SOCS_Xray.pipeline.Pipeline.run" title="Link to this definition"></a></dt>
+<dd><p>Run pipeline! The pipeline will performing cross-matching with TNS and ZTF based on your tme window. And it will store the result in self.uniform_match; and automatically parse email content in self.uniform_html.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>list</em><em>, </em><em>optional</em>) – time offset threshold. Defaults to [-5,30].</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to show progress. Defaults to True.</p></li>
+<li><p><strong>wxt_radii</strong> (<em>float</em><em>, </em><em>optional</em>) – Searching radius for WXT sources (in arcmin). Defaults to 3.5.</p></li>
+<li><p><strong>fxt_radii</strong> (<em>float</em><em>, </em><em>optional</em>) – Searching radius for WXT sources (in arcsec). Defaults to 20.</p></li>
+<li><p><strong>update_result</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to merge new identified candidates to previous result. Defaults to False.</p></li>
+<li><p><strong>fxt_search_max</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum cross-matched FXT sources. Defaults to 3000.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -310,6 +317,25 @@ Table: Table of TNS public objects.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Table</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-SOCS_Xray.mail">
+<dt class="sig sig-object py" id="SOCS_Xray.mail.send_email">
+<span class="sig-prename descclassname"><span class="pre">SOCS_Xray.mail.</span></span><span class="sig-name descname"><span class="pre">send_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smtp_server</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smtp_port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sender_email</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receiver_emails</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">html_body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EP</span> <span class="pre">Counterpart</span> <span class="pre">Searching</span> <span class="pre">Notice'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/SOCS_Xray/mail.html#send_email"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SOCS_Xray.mail.send_email" title="Link to this definition"></a></dt>
+<dd><p>Send email to a list of address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smtp_server</strong> (<em>str</em>) – SMTP server.</p></li>
+<li><p><strong>smtp_port</strong> (<em>float</em>) – SMTP port.</p></li>
+<li><p><strong>sender_email</strong> (<em>str</em>) – Sender email.</p></li>
+<li><p><strong>receiver_emails</strong> (<em>list</em>) – List of receiver emails.</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – password.</p></li>
+<li><p><strong>html_body</strong> (<em>str</em>) – content.</p></li>
+<li><p><strong>title</strong> (<em>str</em><em>, </em><em>optional</em>) – Email title. Defaults to ‘EP Counterpart Searching Notice’.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

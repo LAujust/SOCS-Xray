@@ -116,18 +116,18 @@
                 
 <div class="viewcode-block" id="Pipeline.run">
 <a class="viewcode-back" href="../../api.html#SOCS_Xray.pipeline.Pipeline.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dt</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">30</span><span class="p">],</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">wxt_radii</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span><span class="n">fxt_radii</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">update_result</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">fxt_search_max</span><span class="o">=</span><span class="mi">3000</span><span class="p">):</span>
-<span class="w">        </span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        dt [list,numpy.array]: time offset between x-ray observation time and optical discovery date. Default [-5,30];</span>
-<span class="sd">        ndays [float]: days back for retrieving history data. Default 5;</span>
-<span class="sd">        show_progress [bool]: Default True;</span>
-<span class="sd">        wxt_radii [float]: wxt searching radii in arcmin. Default 3.5;</span>
-<span class="sd">        fxt_radii [float]: fxt searching radii in arcsec. Default 20; </span>
-<span class="sd">        update_result [bool]: Update new result to matched.csv. Default False; </span>
-<span class="sd">        fxt_search_max [float]:   Maximum sources for fxt_serach(). If exceeded, pipeline will search sources with ndet &gt; 1. Default 3000. </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dt</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">30</span><span class="p">],</span><span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">wxt_radii</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span><span class="n">fxt_radii</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">update_result</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">fxt_search_max</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mi">3000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run pipeline! The pipeline will performing cross-matching with TNS and ZTF based on your tme window. And it will store the result in self.uniform_match; and automatically parse email content in self.uniform_html. </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dt (list, optional): time offset threshold. Defaults to [-5,30].</span>
+<span class="sd">            show_progress (bool, optional): Whether to show progress. Defaults to True.</span>
+<span class="sd">            wxt_radii (float, optional): Searching radius for WXT sources (in arcmin). Defaults to 3.5.</span>
+<span class="sd">            fxt_radii (float, optional): Searching radius for WXT sources (in arcsec). Defaults to 20.</span>
+<span class="sd">            update_result (bool, optional): Whether to merge new identified candidates to previous result. Defaults to False.</span>
+<span class="sd">            fxt_search_max (float, optional): Maximum cross-matched FXT sources. Defaults to 3000.</span>
+<span class="sd">        &quot;&quot;&quot;</span>  
+                   
         <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">ndays</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
