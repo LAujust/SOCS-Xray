@@ -2,14 +2,19 @@ from .utils import *
 import smtplib
 from email.mime.text import MIMEText
 
-def myaccount():
-    smtp_server = 'mail.ustc.edu.cn'
-    smtp_port = 465
-    password = 'by9RhYneE6sCDMji'
-    sender_email = 'aujust@mail.ustc.edu.cn'
-    receiver_email = 'liangrd@bao.ac.cn'
 
-def send_email(smtp_server,smtp_port,sender_email,receiver_emails,password,html_body,title='EP Counterpart Searching Notice'):
+def send_email(smtp_server:str,smtp_port:float,sender_email:str,receiver_emails:list,password:str,html_body:str,title='EP Counterpart Searching Notice'):
+    """Send email to a list of address. 
+
+    Args:
+        smtp_server (str): SMTP server.
+        smtp_port (float): SMTP port.
+        sender_email (str): Sender email.
+        receiver_emails (list): List of receiver emails.
+        password (str): password.
+        html_body (str): content.
+        title (str, optional): Email title. Defaults to 'EP Counterpart Searching Notice'.
+    """
     msg = MIMEText(html_body, "html", 'utf-8')
     msg["From"] = sender_email
     msg["To"] = ", ".join(receiver_emails)
