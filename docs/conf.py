@@ -25,6 +25,8 @@ author = 'R. D. Liang'
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
+import SOCS_Xray
+print(SOCS_Xray)
 
 # -- Project information -----------------------------------------------------
 

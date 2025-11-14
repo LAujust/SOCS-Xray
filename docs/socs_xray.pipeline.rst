@@ -1,4 +1,7 @@
 SOCS_Xray.pipeline
 =============
 
-.. autofunction:: SOCS_Xray.pipeline.Pipeline
+.. automodule:: SOCS_Xray.pipeline
+    :members:
+    :undoc-members:
+    :show-inheritance:
