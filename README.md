@@ -12,6 +12,8 @@ By defult, the `pipeline` incorporates X-ray source candidates from EP-WXT and E
 
 ```
 git clone git@github.com:LAujust/SOCS-Xray.git
+cd SOCS-Xray
+pip install .
 ```
 
 - From `pip` (under construction)
