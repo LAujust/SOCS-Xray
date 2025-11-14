@@ -11,4 +11,4 @@ the SOCS-Xray package. Each module is documented using Sphinx's
 
    socs_xray.utils
    socs_xray.pipeline
-   socsxray.fetch
+   socs_xray.fetch
