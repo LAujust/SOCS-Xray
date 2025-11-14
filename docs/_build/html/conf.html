@@ -43,6 +43,9 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Example Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Fetch Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 </ul>
 
         </div>
@@ -90,7 +93,9 @@ author = ‘R. D. Liang’</p>
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath(‘../..’))</p>
+sys.path.insert(0, os.path.abspath(‘../’))
+import SOCS_Xray
+print(SOCS_Xray)</p>
 <p># – Project information —————————————————–</p>
 <p># The full version, including alpha/beta/rc tags
 autosummary_generate = True</p>
