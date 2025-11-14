@@ -2,10 +2,15 @@ API Reference
 =============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
 
-.. automodule:: SOCS_Xray
+.. automodule:: SOCS_Xray.pipeline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: SOCS_Xray.fetch
    :members:
    :undoc-members:
    :show-inheritance:
