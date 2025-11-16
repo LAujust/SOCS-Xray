@@ -250,8 +250,6 @@ class Pipeline(object):
             
         #remove pre-exist
         if len(self.uniform_match) > 0:
-            t_end = time.time()
-            self.elapsed_time = t_end - t_start
             self.uniform_match = setdiff(self.uniform_match,self.matched,keys=['ep_name','oid','ep_link'])
             if len(self.uniform_match) > 0:
                 if update_result:

@@ -11,9 +11,9 @@ setup(
     url="https://github.com/LAujust/SOCS-Xray",  # optional
     packages=find_packages(),              # automatically finds all packages
     install_requires=[
-        "numpy>2.2",
+        "numpy",
         "matplotlib>=3.5",
-        "pandas>2.2.2"
+        "pandas>2.2.3"
     ],
     python_requires=">=3.8",               # optional
 )
