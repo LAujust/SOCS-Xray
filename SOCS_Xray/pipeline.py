@@ -362,9 +362,16 @@ class Pipeline(object):
         try:
             alerce_table_2 = get_Alerce(base_alerce_query(2,firstmjd_2))
             alerce_table_1 = get_Alerce(base_alerce_query(1,firstmjd_1))
-            for col in alerce_table_2.colnames:
-                alerce_table_1[col] = alerce_table_1[col].astype(alerce_table_2[col].dtype)
-            alerce_table = vstack((alerce_table_2,alerce_table_1))
+            if len(alerce_table_1) > 0 and len(alerce_table_2) > 0:
+                for col in alerce_table_2.colnames:
+                    alerce_table_1[col] = alerce_table_1[col].astype(alerce_table_2[col].dtype)
+                alerce_table = vstack((alerce_table_2,alerce_table_1))
+            elif len(alerce_table_2) == 0 and len(alerce_table_1) > 0:
+                alerce_table = alerce_table_1
+            elif len(alerce_table_1) == 0  and len(alerce_table_2) > 0:
+                alerce_table = alerce_table_2
+            else:
+                alerce_table = None
         except Exception as e:
             print('Fail on Alerce: %s'%e)
             
@@ -399,6 +406,10 @@ class Pipeline(object):
             Alerce_clean.rename_columns(['meanra','meandec','class_name'],['o_ra','o_dec','class'])
             Lasair_clean.rename_columns(['objectId','ramean','decmean','mjdmin','classification'],
                                         ['oid','o_ra','o_dec','firstmjd','class'])
+            
+            #Alerce_dtypes = {name: col.dtype for name, col in Alerce_clean.columns.items()}
+            #for name in Alerce_clean.colnames:
+            #    table2[name] = Column(table1[name].astype(table1[name].dtype))
 
             #Combine to ONE table
             ZTF_clean = vstack((Alerce_clean,Lasair_clean))
