@@ -50,7 +50,7 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
 
     # ===== Step 4: Prepare output =====
     # Make columns for each radius
-    fxt_base_cols = ["obs_time", "fxt_name", "target_name", "detnam","ra","dec","id"]
+    fxt_base_cols = ["_create_time", "fxt_name", "target_name", "detnam","ra","dec","id"]
     for r in fxt_base_cols:
         df[r] = None
         
@@ -112,12 +112,12 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
                             
                             match_table = Table.from_pandas(match_table)
                             
-                            match_table = match_table[["obs_time", "fxt_name", "target_name", "detnam","ra","dec","id"]]
+                            match_table = match_table[["_create_time", "fxt_name", "target_name", "detnam","ra","dec","id"]]
                             
-                            create_times = match_table["obs_time"].value
+                            create_times = match_table["_create_time"].value
                             cts = [datetime.strptime(i, "%a, %d %b %Y %H:%M:%S %Z") for i in create_times]
                             ct = [Time(i.isoformat().replace('T',' ')).iso for i in cts]
-                            match_table["obs_time"] = ct
+                            match_table["_create_time"] = ct
                             
                             df_sel = df.loc[[entry["id"]],:]
                             df_dup = pd.DataFrame(
@@ -153,12 +153,12 @@ def search_fxt_from_table(input_file, email, password, ra_col, dec_col, radii, o
         df_filtered = table_filtered.to_pandas()
         
         try:  
-            dt = Time(table_filtered['discoverydate']).mjd - Time(table_filtered['obs_time'].value).mjd
-            df_filtered['dt'] = Time(table_filtered['discoverydate']).mjd - Time(table_filtered['obs_time'].value).mjd
+            dt = Time(table_filtered['discoverydate']).mjd - Time(table_filtered['_create_time'].value).mjd
+            df_filtered['dt'] = Time(table_filtered['discoverydate']).mjd - Time(table_filtered['_create_time'].value).mjd
         except:
-             df_filtered['dt'] = table_filtered['firstmjd'] -  Time(table_filtered['obs_time'].value).mjd
+             df_filtered['dt'] = table_filtered['firstmjd'] -  Time(table_filtered['_create_time'].value).mjd
         # ===== Step 6: Save merged table =====
-        df_filtered = df_filtered.rename(columns={'obs_time':'fxt_obs_time'})
+        df_filtered = df_filtered.rename(columns={'_create_time':'fxt_create_time'})
         #df_filtered.to_csv(output_file, index=False)
         table_filtered = Table.from_pandas(df_filtered)
         return table_filtered
