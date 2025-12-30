@@ -220,8 +220,6 @@ def request_obs_time(EMAIL,PASSWORD,ids):
     Returns:
         list: list observation time
     """
-    EMAIL = "liangrd@bao.ac.cn" # your login email in EP TDAIC
-    PASSWORD = "Liang981127"
     url = "https://ep.bao.ac.cn/ep/api/get_tokenp"
     response = requests.post(
             url,

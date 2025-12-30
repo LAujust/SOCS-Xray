@@ -21,19 +21,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # === 还原前一天的 output ===
-      - name: Restore output cache
-        uses: actions/cache/restore@v4
-        with:
-          path: output
-          key: output-cache-${{ github.run_id }}
-          restore-keys: |
-            output-cache-
-
-      # 确保 output 文件夹存在（第一次运行时可能没有）
-      - name: Prepare output folder
-        run: mkdir -p output
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -45,10 +32,18 @@ jobs:
       - name: Run script
         run: python daily_update.py
 
-      # === 保存当天的 output，防止冲突 ===
-      - name: Save output cache
-        if: always()   # 即使脚本报错也保存已有文件
-        uses: actions/cache/save@v4
-        with:
-          path: output
-          key: output-cache-${{ github.run_id }}
+      - name: Commit and push updated data
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add data/
+
+          # 如果 data 没变化，就不提交，避免 workflow 失败
+          if git diff --cached --quiet; then
+            echo "No changes in data/, skip commit."
+          else
+            git commit -m "Auto update data ($(date -u +'%Y-%m-%d'))"
+            git push
+          fi
