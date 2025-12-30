@@ -14,6 +14,58 @@ sender_password = os.environ["SENDER_PASSWORD"]
 SEND_EMAIL = False
 dt = [-7,30]
 
+
+#=========test TNS-API=========#
+import json
+import requests
+def search_TNS_bot(
+    api_key,
+    bot_id,
+    bot_name,
+    search_params,
+):
+    url = "https://www.wis-tns.org/api/get/search"
+
+    headers = {
+        "User-Agent": f'tns_marker{{"tns_id":{bot_id},"type":"bot","name":"{bot_name}"}}'
+    }
+
+    payload = {
+        "api_key": api_key,
+        "data": json.dumps(search_params)
+    }
+
+    r = requests.post(url, headers=headers, data=payload, timeout=60)
+
+    if r.status_code != 200:
+        raise RuntimeError(f"TNS search failed: {r.status_code}\n{r.text}")
+
+    res = r.json()
+
+    if "data" not in res:
+        print("Empty TNS reply")
+        return None
+
+    data = res["data"]
+    return data
+
+#========================================================#
+API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
+BOT_ID = '164028'
+BOT_NAME = 'bot_BC'
+
+search_parameters={
+        "reported_period_value": "3",
+        "reporteded_period_units": "days",
+        "format": "csv",
+        "num_page": "100",
+        
+    }
+data = search_TNS_bot(api_key=API_KEY,bot_id=BOT_ID,bot_name=BOT_NAME,search_params=search_parameters)
+objids = [item['objid'] for item in data]
+objnames = [item['objname'] for item in data]
+print(objnames)
+
 #Sweep log file
 log_file = "daily.log"
 # 清空日志文件
