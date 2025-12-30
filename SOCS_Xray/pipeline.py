@@ -335,18 +335,41 @@ class Pipeline(object):
             mjdmin = tnow.mjd - ndays
             self.TNS_table = self.TNS_table[self.TNS_table['firstmjd']>=mjdmin]
         except:
-            url_parameters={"discovered_period_value" : "%s"%ndays, "discovered_period_units" : "days", 
-                        "format" : "csv", "num_page" : "200",}
-            self.TNS_table = search_TNS(user_id="3740",user_name='Aujust',url_parameters=url_parameters,save_dir=self.root)
-            coord = SkyCoord(self.TNS_table['RA'],self.TNS_table['DEC'],unit=(u.hourangle, u.deg))
-            self.TNS_table['RA'] = coord.ra.deg
-            self.TNS_table['DEC'] = coord.dec.deg
-            self.TNS_table['name'] = [self.TNS_table['Name'][i].split(' ')[-1] for i in range(len(self.TNS_table))]
-            self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
-            self.TNS_table['firstmjd'] = Time(self.TNS_table['Discovery Date (UT)']).mjd
-            self.TNS_table.rename_columns(['Name','RA','DEC','Discovery Date (UT)'],
-                                            ['oid','o_ra','o_dec','discoverydate'])
-            self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
+            try:
+                url_parameters={"discovered_period_value" : "%s"%ndays, "discovered_period_units" : "days", 
+                            "format" : "csv", "num_page" : "200",}
+                self.TNS_table = search_TNS(user_id="3740",user_name='Aujust',url_parameters=url_parameters,save_dir=self.root)
+                coord = SkyCoord(self.TNS_table['RA'],self.TNS_table['DEC'],unit=(u.hourangle, u.deg))
+                self.TNS_table['RA'] = coord.ra.deg
+                self.TNS_table['DEC'] = coord.dec.deg
+                self.TNS_table['name'] = [self.TNS_table['Name'][i].split(' ')[-1] for i in range(len(self.TNS_table))]
+                self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
+                self.TNS_table['firstmjd'] = Time(self.TNS_table['Discovery Date (UT)']).mjd
+                self.TNS_table.rename_columns(['Name','RA','DEC','Discovery Date (UT)'],
+                                                ['oid','o_ra','o_dec','discoverydate'])
+                self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
+            except:
+                API_KEY = '48aa6e2dfcb5893b987dda29b3f3938e97e8db43'
+                BOT_ID = '164028'
+                BOT_NAME = 'bot_BC'
+
+                search_parameters={
+                        #"reported_period_value": "3",
+                        #"reporteded_period_units": "days",
+                        "discovery_date_start": "2025-12-28 00:00:00",
+                        "format": "csv",
+                        "num_page": "100",
+                        
+                    }
+                self.TNS_table = search_TNS_api(api_key=API_KEY,bot_id=BOT_ID,bot_name=BOT_NAME,search_params=search_parameters)
+                tns_name = [self.TNS_table['name_prefix'][i]+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
+                self.TNS_table['tns_name'] = tns_name
+                self.TNS_table['firstmjd'] = Time(self.TNS_table['discoverydate']).mjd
+                self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
+                self.TNS_table.rename_columns(['ra','dec','tns_name'],['o_ra','o_dec','oid'])
+                self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
+        
+        
         
     def update_ZTF(self,ndays=10):
         firstmjd_2 = self.tnow.mjd - ndays #at least 2 det

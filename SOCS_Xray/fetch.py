@@ -139,6 +139,102 @@ def get_TNS(filename='tns_public_objects.csv.zip',save_dir='./'):
     tns_table.write(os.path.join(save_dir,base_filename),format='csv',overwrite=True)
     return tns_table
     
+    
+def search_TNS_api(api_key, bot_id, bot_name, search_params, pause=1, save_dir='./'):
+    """
+    Search TNS objects via API and fetch detailed information for each object.
+
+    Parameters
+    ----------
+    api_key : str
+        Your TNS API key.
+    bot_id : str or int
+        Your bot ID.
+    bot_name : str
+        Your bot name.
+    search_params : dict
+        Parameters for TNS search API (see TNS API manual).
+    pause : float
+        Pause in seconds between individual object detail requests to avoid rate limit.
+
+    Returns
+    -------
+    Table
+        Astropy Table containing objname, ra, dec, discovery_date, and other fields.
+    """
+    # === Step 1: Search TNS ===
+    search_url = "https://www.wis-tns.org/api/get/search"
+    headers = {"User-Agent": f'tns_marker{{"tns_id":{bot_id},"type":"bot","name":"{bot_name}"}}'}
+    payload = {"api_key": api_key, "data": json.dumps(search_params)}
+
+    response = requests.post(search_url, headers=headers, data=payload, timeout=60)
+    if response.status_code != 200:
+        raise RuntimeError(f"TNS search failed: {response.status_code}\n{response.text}")
+    
+    res_json = response.json()
+    if "data" not in res_json or not res_json["data"]:
+        print("No objects found in TNS search.")
+        return Table()
+
+    search_data = res_json["data"]
+    objnames = [item['objname'] for item in search_data]
+
+    # === Step 2: Fetch details for each object ===
+    detail_url = "https://www.wis-tns.org/api/get/object"
+    all_data = []
+
+    for obj in objnames:
+        payload = {
+            "api_key": api_key,
+            "data": json.dumps({
+                "objname": obj,
+                "objid": "",
+                "photometry": "0",
+                "spectra": "0"
+            })
+        }
+
+        while True:
+            response = requests.post(detail_url, headers=headers, data=payload, timeout=60)
+
+            if response.status_code == 200:
+                break  # 成功
+            elif response.status_code == 429:
+                # Too Many Requests，等待重置
+                reset = int(response.headers.get("X-Rate-Limit-Reset", 5))
+                print(f"Rate limit hit. Waiting {reset} sec...")
+                time.sleep(reset + 1)
+            else:
+                print(f"Failed to fetch {obj}, status {response.status_code}")
+                break
+
+        if response.status_code != 200:
+            continue
+
+        res_json = response.json()
+        data = res_json.get("data", {})
+        if not data:
+            print(f"No detail data returned for {obj}")
+            continue
+
+        # 提取字段
+        all_data.append({
+            "objname": data.get("objname"),
+            "name_prefix": data.get("name_prefix"),
+            "ra": data.get("radeg"),
+            "dec": data.get("decdeg"),
+            "discoverydate": data.get("discoverydate"),
+            "reporting_group": data.get("reporting_group", {}).get("group_name"),
+        })
+
+        time.sleep(pause)
+
+    if not all_data:
+        return Table()
+
+    table = Table(all_data, names=all_data[0].keys())
+    table.write(os.path.join(save_dir,'tns_search_api'),format='csv',overwrite=True)
+    return table
 
 
 def get_Alerce(query):
