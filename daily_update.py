@@ -11,7 +11,7 @@ smtp_server = os.environ["SMTP_SERVER"]
 smtp_port = os.environ["SMTP_PORT"]
 sender_email = os.environ["SENDER_EMAIL"]
 sender_password = os.environ["SENDER_PASSWORD"]
-SEND_EMAIL = os.environ["SEND_EMAIL"].lower() == 'true'
+SEND_EMAIL = False
 dt = [-7,30]
 
 #Sweep log file
