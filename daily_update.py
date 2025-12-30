@@ -20,7 +20,7 @@ log_file = "daily.log"
 with open(log_file, "w") as f:
     pass  # 打开写模式就会清空文件
 
-with open("./datamail_list.txt") as f:
+with open("./data/mail_list.txt") as f:
     success_receiver = [line.strip() for line in f if line.strip()]
 
 # success_receiver = ['liangrd@bao.ac.cn','liwx@bao.ac.cn','wmy@nao.cas.cn',
