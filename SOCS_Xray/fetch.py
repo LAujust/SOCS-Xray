@@ -296,8 +296,9 @@ def get_Lasair(ndays):
                 limit=1e4)
 
     lasair_table = Table(rows)
-    lasair_table[lasair_table['ndet']==None] = 2
-    lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
+    lasair_table['ndet'] = [2]*len(lasair_table)
+    #lasair_table[lasair_table['ndet']==None] = 2
+    #lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
     
     return lasair_table
 
