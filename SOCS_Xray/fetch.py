@@ -343,14 +343,17 @@ def get_Lasair(ndays,survey='ztf',lsst_ncut=5):
         
 
     lasair_table = Table(rows)
-    lasair_table = lasair_table[lasair_table['ndet'] != None]
-    lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
-    # lasair_table['ndet'] = [2]*len(lasair_table)
-    lasair_table['objectId'] = lasair_table['objectId'].astype(str)
-    #lasair_table[lasair_table['ndet']==None] = 2
-    # lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
-    
-    return lasair_table
+    if len(lasair_table) > 0:
+        lasair_table = lasair_table[lasair_table['ndet'] != None]
+        lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
+        # lasair_table['ndet'] = [2]*len(lasair_table)
+        lasair_table['objectId'] = lasair_table['objectId'].astype(str)
+        #lasair_table[lasair_table['ndet']==None] = 2
+        # lasair_table['ndet'] = lasair_table['ndet'].astype(np.int64)
+        
+        return lasair_table
+    else:
+        return None
 
 
 
