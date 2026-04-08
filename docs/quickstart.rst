@@ -28,14 +28,12 @@ Installation
 Configuration of Accounts
 ---------------------------
 
-Einstein Probe
-============================
+- Einstein Probe
 
 Before you start, you should have EP accounts registered. 
 
 
-Email
-============================
+- Email
 
 If you want to have email notification, you should setup smtp server by calling `send_email`. 
 
