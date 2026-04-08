@@ -264,15 +264,17 @@ def get_Alerce(query):
     Returns:
         Table: Table of filtered alerts
     """
-
-    url = "https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"
-    params = requests.get(url).json()['params']
-    engine = sa.create_engine(f"postgresql+psycopg2://{params['user']}:{params['password']}@{params['host']}/{params['dbname']}")
-    engine.begin()
-    alerce_table = pd.read_sql_query(query, con=engine)
-    alerce_table = Table.from_pandas(alerce_table)
-    return alerce_table
-
+    try:
+        url = "https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"
+        params = requests.get(url).json()['params']
+        engine = sa.create_engine(f"postgresql+psycopg2://{params['user']}:{params['password']}@{params['host']}/{params['dbname']}")
+        engine.begin()
+        alerce_table = pd.read_sql_query(query, con=engine)
+        alerce_table = Table.from_pandas(alerce_table)
+        return alerce_table
+    except:
+        print('error loading alerce table')
+        return Table()
 
 def get_Lasair(ndays,survey='ztf',lsst_ncut=5):
     """_summary_
@@ -353,7 +355,7 @@ def get_Lasair(ndays,survey='ztf',lsst_ncut=5):
         
         return lasair_table
     else:
-        return None
+        return Table()
 
 
 

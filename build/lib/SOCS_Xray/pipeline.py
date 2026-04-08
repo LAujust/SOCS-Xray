@@ -143,38 +143,38 @@ class Pipeline(object):
             step += 1
             print(pbar + '[%s]: Processing WXT-LSST'%step + pbar)
         self.update_LSST(ndays=ndays)
-        LSST_c = SkyCoord(self.LSST_clean['o_ra'],self.LSST_clean['o_dec'],unit=u.deg)
+        self.lsst_match = Table()
+        if len(self.LSST_clean)>0:
+            LSST_c = SkyCoord(self.LSST_clean['o_ra'],self.LSST_clean['o_dec'],unit=u.deg)
 
-        source_matched_idx, cat_matched_idx, cat_matched_sep = match_cat(EP_c,LSST_c,radius=wxt_radii*u.arcmin,seperation=True)
-        EP_matched = self.ep_source[source_matched_idx]
-        LSST_matched = self.LSST_clean[cat_matched_idx]
+            source_matched_idx, cat_matched_idx, cat_matched_sep = match_cat(EP_c,LSST_c,radius=wxt_radii*u.arcmin,seperation=True)
+            EP_matched = self.ep_source[source_matched_idx]
+            LSST_matched = self.LSST_clean[cat_matched_idx]
 
-        table_merge = hstack((EP_matched,LSST_matched))
-        table_merge['separation (arcsec)'] = cat_matched_sep.arcsec
+            table_merge = hstack((EP_matched,LSST_matched))
+            table_merge['separation (arcsec)'] = cat_matched_sep.arcsec
 
-        if len(EP_matched) > 0:
-            lsst_time = Time(LSST_matched['firstmjd'],format='mjd')
-            wxt_time_raw = request_obs_time(ids=EP_matched['id'],EMAIL=self.account['email'],PASSWORD=self.account['password'])
-            wxt_time = [d if d is not None else '2030-01-01T00:00:00Z' for d in wxt_time_raw]
-            obs_time = Time(wxt_time)
-            delta_t = lsst_time.mjd - obs_time.mjd
-            table_merge['dt'] = delta_t
+            if len(EP_matched) > 0:
+                lsst_time = Time(LSST_matched['firstmjd'],format='mjd')
+                wxt_time_raw = request_obs_time(ids=EP_matched['id'],EMAIL=self.account['email'],PASSWORD=self.account['password'])
+                wxt_time = [d if d is not None else '2030-01-01T00:00:00Z' for d in wxt_time_raw]
+                obs_time = Time(wxt_time)
+                delta_t = lsst_time.mjd - obs_time.mjd
+                table_merge['dt'] = delta_t
 
-            #table_merge_unique = unique(table_merge,keys='oid')
-            #table_merge = table_merge_unique
+                #table_merge_unique = unique(table_merge,keys='oid')
+                #table_merge = table_merge_unique
 
-            #ndet = 1
-            table_merge_1 = table_merge[table_merge['ndet']==1]
-            table_of_highlight_1 = table_merge_1[(table_merge_1['dt']<1) & (table_merge_1['dt']>-1)]
+                #ndet = 1
+                table_merge_1 = table_merge[table_merge['ndet']==1]
+                table_of_highlight_1 = table_merge_1[(table_merge_1['dt']<1) & (table_merge_1['dt']>-1)]
 
-            #ndet > 1
-            table_merge_2 = table_merge[table_merge['ndet']>1]
-            table_of_highlight_2 = table_merge_2[(table_merge_2['dt']<dt) & (table_merge_2['dt']>-dt)]
+                #ndet > 1
+                table_merge_2 = table_merge[table_merge['ndet']>1]
+                table_of_highlight_2 = table_merge_2[(table_merge_2['dt']<dt) & (table_merge_2['dt']>-dt)]
 
-            table_of_highlight = vstack((table_of_highlight_1,table_of_highlight_2))
-            self.lsst_match = table_of_highlight
-        else:
-            self.lsst_match = Table()
+                table_of_highlight = vstack((table_of_highlight_1,table_of_highlight_2))
+                self.lsst_match = table_of_highlight
             
             
         
@@ -208,15 +208,17 @@ class Pipeline(object):
             step += 1
             print(pbar + '[%s]: Processing FXT-LSST'%step + pbar)
             
-            
-        if len(self.LSST_clean) > fxt_search_max:
-            LSST_clean_fxt = self.LSST_clean[self.LSST_clean['ndet']>1]
-            print('Processing ndet > 1 with %s sources'%len(LSST_clean_fxt))
+        if self.LSST_clean:
+            if len(self.LSST_clean) > fxt_search_max:
+                LSST_clean_fxt = self.LSST_clean[self.LSST_clean['ndet']>1]
+                print('Processing ndet > 1 with %s sources'%len(LSST_clean_fxt))
+            else:
+                LSST_clean_fxt = self.LSST_clean
+            self.fxt_lsst_match = search_fxt_from_table(LSST_clean_fxt ,email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
+            if len(self.fxt_lsst_match) > 0:
+                self.fxt_lsst_match = self.fxt_lsst_match[(self.fxt_lsst_match['dt']<dt) & (self.fxt_lsst_match['dt']>-dt)]
         else:
-            LSST_clean_fxt = self.LSST_clean
-        self.fxt_lsst_match = search_fxt_from_table(LSST_clean_fxt ,email=self.account['email'],password=self.account['password'],ra_col='o_ra',dec_col='o_dec',radii=fxt_radii)
-        if len(self.fxt_lsst_match) > 0:
-            self.fxt_lsst_match = self.fxt_lsst_match[(self.fxt_lsst_match['dt']<dt) & (self.fxt_lsst_match['dt']>-dt)]
+            self.fxt_lsst_match = Table()
             
             
             
@@ -457,6 +459,8 @@ class Pipeline(object):
             print(f"Lasair: {len(lasair_table)}")
         except Exception as e:
             print('Fail on Lasair: %s'%e)
+        if len(lasair_table) == 0:
+            lasair_table = None
         
         try:
             alerce_table_2 = get_Alerce(base_alerce_query(2,firstmjd_2))
@@ -523,13 +527,17 @@ class Pipeline(object):
         #Lasair
         Lasair_table = get_Lasair(ndays,survey='lsst')
         
-        LSST_clean = Lasair_table
-        LSST_clean['link'] = ['https://lasair.lsst.ac.uk/objects/%s'%id for id in LSST_clean['objectId']]
-        LSST_clean['probability'] = [1.] * len(LSST_clean)
-        LSST_clean['pipe;line'] = ['Lasair'] * len(LSST_clean)
-        LSST_clean.rename_columns(['objectId','ramean','decmean','mjdmin','classification'],
-                                        ['oid','o_ra','o_dec','firstmjd','class'])
-        self.LSST_clean = LSST_clean['oid','o_ra','o_dec','firstmjd','link','ndet']
+        if len(Lasair_table)>0:
+            LSST_clean = Lasair_table
+            LSST_clean['link'] = ['https://lasair.lsst.ac.uk/objects/%s'%id for id in LSST_clean['objectId']]
+            LSST_clean['probability'] = [1.] * len(LSST_clean)
+            LSST_clean['pipe;line'] = ['Lasair'] * len(LSST_clean)
+            LSST_clean.rename_columns(['objectId','ramean','decmean','mjdmin','classification'],
+                                            ['oid','o_ra','o_dec','firstmjd','class'])
+            self.LSST_clean = LSST_clean['oid','o_ra','o_dec','firstmjd','link','ndet']
+        else:
+            self.LSST_clean = Table()
+            print("No LSST Alerts!")
         
         
     
