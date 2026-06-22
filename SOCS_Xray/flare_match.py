@@ -117,3 +117,83 @@ def cross_match_flares(
     )
 
     return result
+
+
+def match_one_flare(
+    flare,
+    optical_cat,
+    radius=3.0,
+    dt_window=(-30, 30),
+    flare_ra_col='ra',
+    flare_dec_col='dec',
+    flare_time_col='mjd',
+    flare_name_col='name',
+    opt_ra_col='o_ra',
+    opt_dec_col='o_dec',
+    opt_time_col='firstmjd',
+    opt_name_col='oid',
+    pipeline_label='Flare-Optical',
+):
+    """
+    Cross-match a single flare against an optical transient catalog.
+
+    The optical catalog is first filtered to the time window around the
+    flare, then spatial matching is performed.
+
+    Parameters
+    ----------
+    flare : astropy.Table.Row or dict
+        A single flare with ra, dec, mjd, and name.
+    optical_cat : astropy.Table
+        Full optical transient catalog.
+    radius : float
+        Search radius in arcminutes.
+    dt_window : tuple of (float, float)
+        (min_dt, max_dt) in days.  dt = optical_mjd - flare_mjd.
+    pipeline_label : str
+        Label written into the ``pipeline`` column of the result.
+
+    Returns
+    -------
+    result : astropy.Table
+        Matched pairs (same columns as ``cross_match_flares``), or an empty
+        table if no match is found.
+    """
+    flare_mjd = flare[flare_time_col]
+
+    # Pre-filter optical catalog to the time window around this flare
+    mjd_lo = flare_mjd + dt_window[0]
+    mjd_hi = flare_mjd + dt_window[1]
+    t_mask = (optical_cat[opt_time_col] >= mjd_lo) & (optical_cat[opt_time_col] <= mjd_hi)
+    opt_subset = optical_cat[t_mask]
+
+    if len(opt_subset) == 0:
+        return Table()
+
+    flare_coord = SkyCoord(flare[flare_ra_col], flare[flare_dec_col], unit=u.deg)
+    opt_coords = SkyCoord(opt_subset[opt_ra_col], opt_subset[opt_dec_col], unit=u.deg)
+
+    idx, sep, _ = flare_coord.match_to_catalog_sky(opt_coords)
+    if sep > radius * u.arcmin:
+        return Table()
+
+    matched_opt = opt_subset[idx]
+    dt = matched_opt[opt_time_col] - flare_mjd
+
+    result = Table(
+        {
+            'flare_name': np.array([flare[flare_name_col]], dtype='U50'),
+            'oid': np.array([matched_opt[opt_name_col]], dtype='U50'),
+            'flare_ra': np.array([flare[flare_ra_col]], dtype='f8'),
+            'flare_dec': np.array([flare[flare_dec_col]], dtype='f8'),
+            'o_ra': np.array([matched_opt[opt_ra_col]], dtype='f8'),
+            'o_dec': np.array([matched_opt[opt_dec_col]], dtype='f8'),
+            'separation (arcsec)': np.array([sep.arcsec], dtype='f8'),
+            'flare_mjd': np.array([flare_mjd], dtype='f8'),
+            'firstmjd': np.array([matched_opt[opt_time_col]], dtype='f8'),
+            'dt': np.array([dt], dtype='f8'),
+            'pipeline': np.array([pipeline_label], dtype='U30'),
+        }
+    )
+
+    return result
