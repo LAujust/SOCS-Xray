@@ -407,6 +407,7 @@ class Pipeline(object):
             
             self.TNS_table.rename_columns(['ra','declination','tns_name'],['o_ra','o_dec','oid'])
             self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
+            self.TNS_table['oid'] = [self.TNS_table['oid'][i].replace(" ","") for i in range(len(self.TNS_table))]
             
             tnow = Time.now()
             mjdmin = tnow.mjd - ndays
@@ -444,6 +445,7 @@ class Pipeline(object):
                 self.TNS_table['firstmjd'] = Time(self.TNS_table['discoverydate']).mjd
                 self.TNS_table['link'] = ['https://www.wis-tns.org/object/'+self.TNS_table['name'][i] for i in range(len(self.TNS_table))]
                 self.TNS_table.rename_columns(['ra','dec','tns_name'],['o_ra','o_dec','oid'])
+                self.TNS_table['oid'] = [self.TNS_table['oid'][i].replace(" ","") for i in range(len(self.TNS_table))]
                 self.TNS_table = self.TNS_table['oid','o_ra','o_dec','discoverydate','firstmjd','link']
         
         
@@ -534,6 +536,7 @@ class Pipeline(object):
             LSST_clean['pipe;line'] = ['Lasair'] * len(LSST_clean)
             LSST_clean.rename_columns(['objectId','ramean','decmean','mjdmin','classification'],
                                             ['oid','o_ra','o_dec','firstmjd','class'])
+            print(f"LSST [Lasair]: {len(LSST_clean)}")
             self.LSST_clean = LSST_clean['oid','o_ra','o_dec','firstmjd','link','ndet']
         else:
             self.LSST_clean = Table()
